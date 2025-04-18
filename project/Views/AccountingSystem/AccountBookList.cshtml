@@ -1,0 +1,28 @@
+﻿@model List<project.Models.AccountBookList>
+
+@{
+    ViewBag.Title = "Account Book List";
+}
+
+<h1>帳本列表</h1>
+<hr />
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>User ID</th>
+            <th>Account Book ID</th>
+            <th>Account Book Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.UserId</td>
+                <td>@item.AccountBookId</td>
+                <td>@item.AccountBookName</td>
+            </tr>
+        }
+    </tbody>
+</table>
