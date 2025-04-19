@@ -15,5 +15,8 @@ namespace project.Models
 
         [DisplayName("帳本名稱")]
         public string AccountBookName { get; set; }
+        
+        [DisplayName("帳本描述")]
+        public string Description { get; set; }
     }
 }

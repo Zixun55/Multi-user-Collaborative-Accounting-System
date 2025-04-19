@@ -10,18 +10,26 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th>User ID</th>
-            <th>Account Book ID</th>
-            <th>Account Book Name</th>
+            <th class="text-center" style="width: 15%;">開啟</th>
+            <th style="display:none;">User ID</th>
+            <th>帳本編號</th>
+            <th>帳本名稱</th>
+            <th>帳本描述</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.UserId</td>
+                <td class="text-center" style="width: 15%;">
+                    <a href="@Url.Action("Details", "AccountBook", new { id = item.AccountBookId })" class="btn btn-primary">
+                        開啟
+                    </a>
+                </td>
+                <td style="display:none;">@item.UserId</td>
                 <td>@item.AccountBookId</td>
                 <td>@item.AccountBookName</td>
+                <td>@item.Description</td>
             </tr>
         }
     </tbody>

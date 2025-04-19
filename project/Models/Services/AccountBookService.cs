@@ -28,10 +28,10 @@ namespace project.Models.Services
         /// </summary>
         /// <param name="arg">使用者編號</param>
         /// <returns></returns>
-        public List<Models.AccountBookList> SearchBookData(Models.AccountBookList arg)
+        public List<Models.AccountBookList> GetAccountBookList(Models.AccountBookList arg)
         {
             DataTable dt = new DataTable();
-            string sql = @"SELECT OWNER, ACCOUNT_BOOK_ID, ACCOUNT_BOOK_NAME FROM ACCOUNT_BOOK WHERE OWNER = @OWNER";
+            string sql = @"SELECT OWNER, ACCOUNT_BOOK_ID, ACCOUNT_BOOK_NAME, DESCRIPTION FROM ACCOUNT_BOOK WHERE OWNER = @OWNER";
             using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
             {
                 conn.Open();
@@ -48,7 +48,8 @@ namespace project.Models.Services
                 {
                     UserId = Convert.ToInt32(row["OWNER"]),
                     AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]),
-                    AccountBookName = row["ACCOUNT_BOOK_NAME"].ToString()
+                    AccountBookName = row["ACCOUNT_BOOK_NAME"].ToString(),
+                    Description = Convert.ToString(row["Description"])
                 });
             }
 
