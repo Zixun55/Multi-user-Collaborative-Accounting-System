@@ -44,5 +44,36 @@ namespace project.Controllers
 
             return View(accountBookDataResult);
         }
+
+        /// <summary>
+        /// 獲得交易資料
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult TransactionUpdate(int id)
+        {
+            AccountBookService service = new AccountBookService(_configuration);
+            var searchArg = new TransactionData { TransactionId = id };
+            TransactionData accountBookDataResult = service.GetTransactionData(searchArg);
+
+            return View(accountBookDataResult);
+        }
+
+        /// <summary>
+        /// 儲存修改的交易紀錄
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TransactionUpdateSave(TransactionData data)
+        {
+            AccountBookService service = new AccountBookService(_configuration);
+            if (ModelState.IsValid)
+            {
+                service.UpdateTransactionData(data);
+                return RedirectToAction("AccountBookData", "AccountingSystem", new { id = data.AccountBookId });
+            }
+            return View("TransactionUpdate", data);
+        }
     }
 }

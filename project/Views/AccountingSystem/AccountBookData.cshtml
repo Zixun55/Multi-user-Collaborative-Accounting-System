@@ -8,6 +8,12 @@
 </h1>
 <hr />
 
+<div class="mt-4">
+    <a href="@Url.Action("AccountBookList", "AccountingSystem")" class="btn btn-secondary">
+        返回帳本列表
+    </a>
+</div><br>
+
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -24,7 +30,7 @@
         {
             <tr>
                 <td class="text-center" style="width: 15%;">
-                    <a href="@Url.Action("Details", "AccountBook", new { id = item.TransactionId })" class="btn btn-primary">
+                    <a href="@Url.Action("TransactionUpdate", "AccountingSystem", new { id = item.TransactionId })" class="btn btn-primary">
                         修改
                     </a>
                 </td>
