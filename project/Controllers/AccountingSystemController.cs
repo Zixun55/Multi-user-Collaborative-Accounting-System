@@ -106,5 +106,20 @@ namespace project.Controllers
             }
             return View("TransactionInsert", data);
         }
+
+        /// <summary>
+        /// 刪除交易紀錄
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <param name="accountBookId"></param>
+        /// <returns></returns>
+        public IActionResult TransactionDelete(int transactionId, int accountBookId)
+        {
+            AccountBookService service = new AccountBookService(_configuration);
+            service.DeleteTransactionData(transactionId, accountBookId);
+
+            TempData["DeleteSuccess"] = "刪除成功";
+            return RedirectToAction("AccountBookData", new { id = accountBookId });
+        }
     }
 }

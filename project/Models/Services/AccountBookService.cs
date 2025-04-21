@@ -179,5 +179,24 @@ namespace project.Models.Services
                 conn.Close();
             }
         }
+
+        /// <summary>
+        /// 刪除交易紀錄
+        /// </summary>
+        /// <param name="transactionId"></param>
+        public void DeleteTransactionData(int transactionId, int accountBookId)
+        {
+            string sql = @"DELETE FROM TRANSACTION WHERE TRANSACTION_ID = @TRANSACTION_ID AND ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            {
+                conn.Open();
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TRANSACTION_ID", transactionId);
+                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+        }
     }
 }

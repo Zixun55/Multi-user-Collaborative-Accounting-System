@@ -1,7 +1,16 @@
-﻿@model List<project.Models.TransactionList>
+﻿@using System.Text.Encodings.Web
+@model List<project.Models.TransactionList>
 
 @{
     ViewBag.Title = "Account Book Data";
+}
+
+@if (TempData["DeleteSuccess"] != null)
+{
+    var message = JavaScriptEncoder.Default.Encode(TempData["DeleteSuccess"].ToString());
+    <script type="text/javascript">
+        alert('@message');
+    </script>
 }
 
 <h1>帳本資料
@@ -20,7 +29,8 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th class="text-center" style="width: 15%;">修改</th>
+            <th class="text-center" style="width: 10%;">修改</th>
+            <th class="text-center" style="width: 10%;">刪除</th>
             <th style="display:none;">交易編號</th>
             <th>日期</th>
             <th>類別</th>
@@ -32,9 +42,16 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td class="text-center" style="width: 15%;">
+                <td class="text-center" style="width: 10%;">
                     <a href="@Url.Action("TransactionUpdate", "AccountingSystem", new { id = item.TransactionId })" class="btn btn-primary">
                         修改
+                    </a>
+                </td>
+                <td class="text-center" style="width: 10%;">
+                    <a href="@Url.Action("TransactionDelete", "AccountingSystem", new { transactionId = item.TransactionId, accountBookId = item.AccountBookId })"
+                       class="btn btn-danger"
+                       onclick="return confirm('確定要刪除嗎？');">
+                        刪除
                     </a>
                 </td>
                 <td style="display:none;">@item.TransactionId</td>
