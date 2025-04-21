@@ -36,7 +36,7 @@ namespace project.Controllers
             AccountBookService service = new AccountBookService(_configuration);
             var searchArg = new TransactionList { AccountBookId = id };
             List<TransactionList> accountBookDataResult = service.GetAccountBookData(searchArg);
-
+            ViewBag.AccountBookId = id;
             if (accountBookDataResult == null || accountBookDataResult.Count == 0)
             {
                 return NotFound();
@@ -46,7 +46,7 @@ namespace project.Controllers
         }
 
         /// <summary>
-        /// 獲得交易資料
+        /// 獲得交易資料(交易編輯頁面)
         /// </summary>
         /// <returns></returns>
         public ActionResult TransactionUpdate(int id)
@@ -74,6 +74,37 @@ namespace project.Controllers
                 return RedirectToAction("AccountBookData", "AccountingSystem", new { id = data.AccountBookId });
             }
             return View("TransactionUpdate", data);
+        }
+
+        /// <summary>
+        /// 新增交易頁面
+        /// </summary>
+        /// <param name="accountBookId"></param>
+        /// <returns></returns>
+        public ActionResult TransactionInsert(int accountBookId)
+        {
+            var model = new TransactionData();
+            model.AccountBookId = accountBookId;
+            model.Date = DateTime.Now;
+            return View(model);
+        }
+
+        /// <summary>
+        /// 儲存新增的交易紀錄
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TransactionInsertSave(TransactionData data)
+        {
+            AccountBookService service = new AccountBookService(_configuration);
+            if (ModelState.IsValid)
+            {
+                service.InsertTransactionData(data);
+                return RedirectToAction("AccountBookData", "AccountingSystem", new { id = data.AccountBookId });
+            }
+            return View("TransactionInsert", data);
         }
     }
 }

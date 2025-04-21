@@ -12,6 +12,9 @@
     <a href="@Url.Action("AccountBookList", "AccountingSystem")" class="btn btn-secondary">
         返回帳本列表
     </a>
+    <a href="@Url.Action("TransactionInsert", "AccountingSystem", new { accountBookId=ViewBag.AccountBookId })" class="btn btn-primary">
+        新增
+    </a>
 </div><br>
 
 <table class="table table-bordered table-striped">

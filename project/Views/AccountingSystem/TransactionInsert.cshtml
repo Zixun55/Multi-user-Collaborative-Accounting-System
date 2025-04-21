@@ -1,11 +1,11 @@
 ﻿@model project.Models.TransactionData
 
 @{
-    ViewBag.Title = "Update Transaction Data";
+    ViewBag.Title = "Insert Transaction Data";
 }
 
 <h1>
-    編輯
+    新增
 </h1>
 <hr />
 
@@ -14,15 +14,13 @@
 </a>
 <br>
 
-@using (Html.BeginForm("TransactionUpdateSave", "AccountingSystem", FormMethod.Post))
+@using (Html.BeginForm("TransactionInsertSave", "AccountingSystem", FormMethod.Post))
 {
     @Html.AntiForgeryToken()
-    @Html.HiddenFor(model => model.TransactionId)
 
     <div class="form-horizontal">
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-        @Html.HiddenFor(model => model.TransactionId)
         @Html.HiddenFor(model => model.AccountBookId)
 
         <div class="form-group">
@@ -44,7 +42,7 @@
         <div class="form-group">
             @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.TextBoxFor(model => model.Description, new { @class = "form-control" } )
+                @Html.TextBoxFor(model => model.Description, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
             </div>
         </div>
@@ -52,7 +50,7 @@
         <div class="form-group">
             @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.TextBoxFor(model => model.Amount, new { @class = "form-control" } )
+                @Html.TextBoxFor(model => model.Amount, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
             </div>
         </div>
@@ -60,14 +58,14 @@
         <div class="form-group">
             @Html.LabelFor(model => model.Currency, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.TextBoxFor(model => model.Currency, new { @class = "form-control" } )
+                @Html.TextBoxFor(model => model.Currency, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
             </div>
         </div>
         <br>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="儲存" class="btn btn-primary" onclick="return confirmSave();" />
+                <input type="submit" value="新增" class="btn btn-primary" onclick="return confirmSave();" />
             </div>
         </div>
     </div>
@@ -75,6 +73,6 @@
 
 <script type="text/javascript">
     function confirmSave() {
-        return confirm("確定要儲存變更嗎？");
+        return confirm("確定要新增嗎？");
     }
 </script>

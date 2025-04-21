@@ -154,5 +154,30 @@ namespace project.Models.Services
                 conn.Close();
             }
         }
+
+        /// <summary>
+        /// 新增交易紀錄
+        /// </summary>
+        /// <param name="data"></param>
+        public void InsertTransactionData(TransactionData arg)
+        {
+            string sql = @"INSERT INTO TRANSACTION 
+                            (ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY) 
+                            VALUES (@ACCOUNT_BOOK_ID, @DATE, @AMOUNT, @DESCRIPTION, @CURRENCY, @CATEGORY)";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            {
+                conn.Open();
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@DATE", arg.Date);
+                cmd.Parameters.AddWithValue("@AMOUNT", arg.Amount);
+                cmd.Parameters.AddWithValue("@DESCRIPTION", arg.Description);
+                cmd.Parameters.AddWithValue("@CURRENCY", arg.Currency);
+                cmd.Parameters.AddWithValue("@CATEGORY", arg.Category);
+                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", arg.AccountBookId);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+        }
     }
 }
