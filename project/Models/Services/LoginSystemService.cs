@@ -46,5 +46,49 @@ namespace project.Models.Services
                 }
             }
         }
+
+        /// <summary>
+        /// 檢查有無重複的Email
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
+        public bool CheckEmail(string email)
+        {
+            string sql = @"SELECT COUNT(*) FROM USERS WHERE EMAIL = @EMAIL";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@EMAIL", email);
+
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    return count > 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 建立新使用者(註冊)
+        /// </summary>
+        /// <param name="arg"></param>
+        public void CreateNewUser(UserData arg)
+        {
+            string sql = @"INSERT INTO USERS 
+                            (USER_NAME, EMAIL, PASSWORDS) 
+                            VALUES (@USER_NAME, @EMAIL, @PASSWORDS)";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            {
+                conn.Open();
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@USER_NAME", arg.UserName);
+                cmd.Parameters.AddWithValue("@EMAIL", arg.Email);
+                cmd.Parameters.AddWithValue("@PASSWORDS", arg.Password);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+        }
     }
 }

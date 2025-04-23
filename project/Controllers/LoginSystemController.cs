@@ -39,11 +39,12 @@ namespace project.Controllers
                 if (userId != null)
                 {
                     HttpContext.Session.SetInt32("UserId", userId.Value); // 存進 Session
+                    TempData["LoginSuccess"] = "登入成功";
                     return RedirectToAction("AccountBookList", "AccountingSystem");
                 }
                 else
                 {
-                    ModelState.AddModelError("", "帳號或密碼錯誤");
+                    ModelState.AddModelError("", "Email或密碼錯誤");
                     return View(user);
                 }
             }
@@ -68,7 +69,40 @@ namespace project.Controllers
             }
 
             HttpContext.Session.Clear(); // 清空 session
+            TempData["LogoutSuccess"] = "登出成功";
             return RedirectToAction("Login", "LoginSystem");
+        }
+
+        /// <summary>
+        /// 顯示註冊頁面
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Register(UserData data)
+        {
+            LoginSystemService service = new LoginSystemService(_configuration);
+            if (ModelState.IsValid)
+            {
+                if (!service.CheckEmail(data.Email))
+                {
+                    service.CreateNewUser(data);
+                    TempData["RegisterSuccess"] = "註冊成功";
+                    return RedirectToAction("Login", "LoginSystem");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "此Email已註冊過");
+                    return View(data);
+                }
+            }
+            return View(data);
         }
     }
 }

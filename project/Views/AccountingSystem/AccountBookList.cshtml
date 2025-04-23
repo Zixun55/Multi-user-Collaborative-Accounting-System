@@ -1,7 +1,16 @@
-﻿@model List<project.Models.AccountBookList>
+﻿@using System.Text.Encodings.Web
+@model List<project.Models.AccountBookList>
 
 @{
     ViewBag.Title = "Account Book List";
+}
+
+@if (TempData["LoginSuccess"] != null)
+{
+    var message = JavaScriptEncoder.Default.Encode(TempData["LoginSuccess"].ToString());
+    <script type="text/javascript">
+        alert('@message');
+    </script>
 }
 
 <h1>帳本列表</h1>
