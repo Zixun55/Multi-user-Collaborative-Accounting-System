@@ -20,8 +20,15 @@ namespace project.Controllers
         /// <returns></returns>
         public ActionResult AccountBookList()
         {
+            int? userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "LoginSystem");
+            }
+
             AccountBookService service = new AccountBookService(_configuration);
-            var searchArg = new AccountBookList { UserId = 1 };
+            var searchArg = new AccountBookList { UserId = userId.Value };
             List<AccountBookList> listResult = service.GetAccountBookList(searchArg);
 
             return View(listResult);

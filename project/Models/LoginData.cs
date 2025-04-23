@@ -1,26 +1,18 @@
 ﻿using System.ComponentModel;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
 namespace project.Models
 {
     /// <summary>
-    /// 使用者資料
+    /// 登入用使用者資料
     /// </summary>
-    public class UserData
+    public class LoginData
     {       
-        [DisplayName("使用者編號")]
-        public int UserId { get; set; }
-
-        [DisplayName("使用者名稱")]
-        public string UserName { get; set; }
-
+        [Required(ErrorMessage = "Email未填寫")]
         [DisplayName("Email")]
         public string Email { get; set; }
 
+        [Required(ErrorMessage = "密碼未填寫")]
         [DisplayName("密碼")]
         public string Password { get; set; }
     }
