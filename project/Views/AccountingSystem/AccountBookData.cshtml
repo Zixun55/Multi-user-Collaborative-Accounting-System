@@ -24,7 +24,26 @@
     <a href="@Url.Action("TransactionInsert", "AccountingSystem", new { accountBookId=ViewBag.AccountBookId })" class="btn btn-primary">
         新增
     </a>
-</div><br>
+    <!-- 隱藏的檔案選擇 input -->
+    <input type="file" name="csvFile" id="csvFile" accept=".csv" style="display:none" required />
+
+    <!-- 自訂按鈕 -->
+    <button type="button" id="selectFileBtn">選擇 CSV 檔案匯入</button>
+
+    <script>
+        document.getElementById('selectFileBtn').addEventListener('click', function() {
+            document.getElementById('csvFile').click();
+        });
+    </script>
+    <button type="button" id="exportBtn" class="btn btn-success">匯出帳本</button>
+    <script>
+        document.getElementById('exportBtn').onclick = function() {
+            var accountBookId = '@ViewBag.AccountBookId'; // 替換成你實際的帳本ID來源
+            window.location.href = '/CSVInoutput/ExportAccountBook?accountBookId=' + accountBookId;
+        };
+    </script>
+
+</div><br />
 
 <table class="table table-bordered table-striped">
     <thead>
