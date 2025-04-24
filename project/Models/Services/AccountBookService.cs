@@ -221,5 +221,48 @@ namespace project.Models.Services
                 conn.Close();
             }
         }
+
+        /// <summary>
+        /// 刪除帳本(會同時刪除ACCOUNT_BOOK和TRANSACTION的資料)
+        /// </summary>
+        /// <param name="accountBookId"></param>
+        public void DeleteAccountBookData(int accountBookId)
+        {
+            string deleteAccountBookSql = @"DELETE FROM ACCOUNT_BOOK WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+            string deleteTransactionsSql = @"DELETE FROM TRANSACTION WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            {
+                conn.Open();
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 刪除交易紀錄
+                        using (var cmd1 = new NpgsqlCommand(deleteTransactionsSql, conn))
+                        {
+                            cmd1.Transaction = transaction;
+                            cmd1.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
+                            cmd1.ExecuteNonQuery();
+                        }
+
+                        // 刪除帳本
+                        using (var cmd2 = new NpgsqlCommand(deleteAccountBookSql, conn))
+                        {
+                            cmd2.Transaction = transaction;
+                            cmd2.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
+                            cmd2.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        throw new Exception("刪除帳本失敗：" + ex.Message);
+                    }
+                }
+            }
+        }
     }
 }

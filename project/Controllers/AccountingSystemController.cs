@@ -156,5 +156,28 @@ namespace project.Controllers
             }
             return View("AccountBookInsert", data);
         }
+
+        /// <summary>
+        /// 刪除帳本
+        /// </summary>
+        /// <param name="accountBookId"></param>
+        /// <returns></returns>
+        public IActionResult AccountBookDelete(int accountBookId)
+        {
+            try
+            {
+                AccountBookService service = new AccountBookService(_configuration);
+                service.DeleteAccountBookData(accountBookId);
+
+                TempData["DeleteAccountBookSuccess"] = "刪除帳本成功";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("刪除帳本錯誤：" + ex.Message);
+
+                TempData["DeleteAccountBookError"] = "刪除帳本失敗，請稍後再試";
+            }
+            return RedirectToAction("AccountBookList");
+        }
     }
 }
