@@ -27,6 +27,8 @@ namespace project.Controllers
                 return RedirectToAction("Login", "LoginSystem");
             }
 
+            ViewBag.UserId = userId;
+
             AccountBookService service = new AccountBookService(_configuration);
             var searchArg = new AccountBookList { UserId = userId.Value };
             List<AccountBookList> listResult = service.GetAccountBookList(searchArg);
@@ -44,10 +46,6 @@ namespace project.Controllers
             var searchArg = new TransactionList { AccountBookId = id };
             List<TransactionList> accountBookDataResult = service.GetAccountBookData(searchArg);
             ViewBag.AccountBookId = id;
-            if (accountBookDataResult == null || accountBookDataResult.Count == 0)
-            {
-                return NotFound();
-            }
 
             return View(accountBookDataResult);
         }
@@ -127,6 +125,36 @@ namespace project.Controllers
 
             TempData["DeleteSuccess"] = "刪除成功";
             return RedirectToAction("AccountBookData", new { id = accountBookId });
+        }
+
+        /// <summary>
+        /// 顯示新增帳本頁面
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public ActionResult AccountBookInsert(int userId)
+        {
+            var model = new AccountBookData();
+            model.UserId = userId;
+            return View(model);
+        }
+
+        /// <summary>
+        /// 儲存新增的帳本
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AccountBookInsertSave(AccountBookData data)
+        {
+            AccountBookService service = new AccountBookService(_configuration);
+            if (ModelState.IsValid)
+            {
+                service.InsertAccountBook(data);
+                return RedirectToAction("AccountBookList", "AccountingSystem", new { id = data.UserId });
+            }
+            return View("AccountBookInsert", data);
         }
     }
 }

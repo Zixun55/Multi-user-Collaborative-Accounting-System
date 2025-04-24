@@ -198,5 +198,28 @@ namespace project.Models.Services
                 conn.Close();
             }
         }
+
+        /// <summary>
+        /// 新增帳本
+        /// </summary>
+        /// <param name="arg"></param>
+        public void InsertAccountBook(AccountBookData arg)
+        {
+            string sql = @"INSERT INTO ACCOUNT_BOOK 
+                            (ACCOUNT_BOOK_NAME, DESCRIPTION, BASE_CURRENCY, OWNER) 
+                            VALUES (@ACCOUNT_BOOK_NAME, @DESCRIPTION, @BASE_CURRENCY, @OWNER)";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            {
+                conn.Open();
+                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_NAME", arg.AccountBookName);
+                cmd.Parameters.AddWithValue("@DESCRIPTION", arg.Description);
+                cmd.Parameters.AddWithValue("@BASE_CURRENCY", arg.BaseCurrency);
+                cmd.Parameters.AddWithValue("@OWNER", arg.UserId);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+        }
     }
 }

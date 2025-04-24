@@ -16,6 +16,13 @@
 <h1>帳本列表</h1>
 <hr />
 
+<div class="mt-4">
+    <a href="@Url.Action("AccountBookInsert", "AccountingSystem", new { userId= ViewBag.UserId})" class="btn btn-primary">
+        新增帳本
+    </a>
+</div>
+<br>
+
 <table class="table table-bordered table-striped">
     <thead>
         <tr>

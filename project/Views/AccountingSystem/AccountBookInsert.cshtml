@@ -1,0 +1,64 @@
+﻿@using System.Text.Encodings.Web
+@model project.Models.AccountBookData
+
+@{
+    ViewBag.Title = "Account Book List";
+}
+
+<h1>新增帳本</h1>
+<hr />
+
+<div class="mt-4">
+    <a href="@Url.Action("AccountBookList", "AccountingSystem")" class="btn btn-secondary">
+        返回帳本列表
+    </a>
+</div>
+<br>
+
+@using (Html.BeginForm("AccountBookInsertSave", "AccountingSystem", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        @Html.HiddenFor(model => model.UserId)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.AccountBookName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.AccountBookName, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.AccountBookName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.Description, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.BaseCurrency, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.BaseCurrency, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.BaseCurrency, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <br>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="新增" class="btn btn-primary" onclick="return confirmSave();" />
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    function confirmSave() {
+        return confirm("確定要新增帳本嗎？");
+    }
+</script>
