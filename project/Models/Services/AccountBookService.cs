@@ -232,37 +232,28 @@ namespace project.Models.Services
         /// <param name="arg"></param>
         public AccountBookData SearchAccountBook(int accountBookId)
         {
-            string sql = @"SELECT description, owner, account_book_id, account_book_name 
-                   FROM account_book 
-                   WHERE account_book_id = @ACCOUNT_BOOK_ID";
+            string sql = @"SELECT DESCRIPTION, ACCOUNT_BOOK_NAME 
+                   FROM ACCOUNT_BOOK 
+                   WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
-                {
-                    // 添加參數
-                    cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
+                { "@ACCOUNT_BOOK_ID", accountBookId }
+            };
 
-                    // 執行查詢
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            return new AccountBookData
-                            {
-                                Description = reader["description"] as string,
-                                AccountBookName = reader["account_book_name"] as string
-                            };
-                        }
-                        else
-                        {
-                            return null; // 找不到資料
-                        }
-                    }
+            DataTable dt = _dbHelper.ExecuteQuery(sql, parameters);
 
-                }
+            if (dt.Rows.Count == 0)
+            {
+                return null;
             }
+
+            DataRow row = dt.Rows[0];
+            return new AccountBookData
+            {
+                Description = row["DESCRIPTION"].ToString(),
+                AccountBookName = row["ACCOUNT_BOOK_NAME"].ToString()
+            };
         }
     }
 }

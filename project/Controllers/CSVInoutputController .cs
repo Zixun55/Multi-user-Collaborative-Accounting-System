@@ -9,20 +9,22 @@ namespace project.Controllers
 {
     public class CSVInoutputController : Controller
     {
-        private readonly IConfiguration _configuration;
-        public CSVInoutputController(IConfiguration configuration)
+
+        private readonly AccountBookService _service;
+
+        public CSVInoutputController(AccountBookService service)
         {
-            _configuration = configuration;
+            _service = service;
         }
+
         // 匯出帳本為 CSV
         [HttpGet]
         public IActionResult ExportAccountBook(int accountBookId)
         {
-            AccountBookService service = new AccountBookService(_configuration);
             var searchArg1 = new AccountBookList {AccountBookId = accountBookId };
-            AccountBookData accountBookDataResult1 = service.SearchAccountBook(accountBookId);
+            AccountBookData accountBookDataResult1 = _service.SearchAccountBook(accountBookId);
             var searchArg2 = new TransactionList { AccountBookId = accountBookId };
-            List<TransactionList> accountBookDataResult = service.GetAccountBookData(searchArg2);
+            List<TransactionList> accountBookDataResult = _service.GetAccountBookData(searchArg2);
 
             // 使用MemoryStream和StreamWriter自動添加BOM
             using (var memoryStream = new MemoryStream())
@@ -36,7 +38,7 @@ namespace project.Controllers
                 foreach (TransactionList id in accountBookDataResult)
                 {
                     var searchArg3 = new TransactionData { TransactionId = id.TransactionId };
-                    TransactionData accountBookDataResult2 = service.GetTransactionData(searchArg3);
+                    TransactionData accountBookDataResult2 = _service.GetTransactionData(searchArg3);
                     streamWriter.WriteLine(
                         $"{accountBookDataResult2.Date:yyyy/M/d tt hh:mm:ss}," +
                         $"{accountBookDataResult2.Category}," +
@@ -97,18 +99,16 @@ namespace project.Controllers
             }
 
             // 1. 新增帳本（名稱與描述可讓使用者輸入，這裡假設預設值）
-            AccountBookService service = new AccountBookService(_configuration);
-
-            service.InsertAccountBook(accountBookData);
+            _service.InsertAccountBook(accountBookData);
             AccountBookList accountBookList = new AccountBookList();
             accountBookList.UserId = userId;
-            List<AccountBookList> transactionDatas = service.GetAccountBookList(accountBookList);
+            List<AccountBookList> transactionDatas = _service.GetAccountBookList(accountBookList);
             int abId = transactionDatas[transactionDatas.Count() - 1].AccountBookId;
             // 2. 新增所有交易紀錄
             foreach (var transaction in transactionDataList)
             {
                 transaction.AccountBookId = abId;
-                service.InsertTransactionData(transaction);
+                _service.InsertTransactionData(transaction);
             }
 
             TempData["SuccessMessage"] = "帳本與交易紀錄已成功匯入";

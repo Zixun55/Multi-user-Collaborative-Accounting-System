@@ -178,9 +178,8 @@ namespace project.Controllers
         /// <returns></returns>
         public IActionResult ShowReport(int accountBookId)
         {
-            AccountBookService service = new AccountBookService(_configuration);
             var searchArg = new TransactionList { AccountBookId = accountBookId };
-            List<TransactionList> transactions = service.GetAccountBookData(searchArg);
+            List<TransactionList> transactions = _service.GetAccountBookData(searchArg);
             ViewBag.AccountBookId = accountBookId;
             return View(transactions);
         }
