@@ -7,11 +7,11 @@ namespace project.Controllers
 {
     public class AccountingSystemController : Controller
     {
-        private readonly IConfiguration _configuration;
+        private readonly AccountBookService _service;
 
-        public AccountingSystemController(IConfiguration configuration)
+        public AccountingSystemController(AccountBookService service)
         {
-            _configuration = configuration;
+            _service = service;
         }
 
         /// <summary>
@@ -29,9 +29,8 @@ namespace project.Controllers
 
             ViewBag.UserId = userId;
 
-            AccountBookService service = new AccountBookService(_configuration);
             var searchArg = new AccountBookList { UserId = userId.Value };
-            List<AccountBookList> listResult = service.GetAccountBookList(searchArg);
+            List<AccountBookList> listResult = _service.GetAccountBookList(searchArg);
 
             return View(listResult);
         }
@@ -42,9 +41,8 @@ namespace project.Controllers
         /// <returns></returns>
         public ActionResult AccountBookData(int id)
         {
-            AccountBookService service = new AccountBookService(_configuration);
             var searchArg = new TransactionList { AccountBookId = id };
-            List<TransactionList> accountBookDataResult = service.GetAccountBookData(searchArg);
+            List<TransactionList> accountBookDataResult = _service.GetAccountBookData(searchArg);
             ViewBag.AccountBookId = id;
 
             return View(accountBookDataResult);
@@ -56,9 +54,8 @@ namespace project.Controllers
         /// <returns></returns>
         public ActionResult TransactionUpdate(int id)
         {
-            AccountBookService service = new AccountBookService(_configuration);
             var searchArg = new TransactionData { TransactionId = id };
-            TransactionData accountBookDataResult = service.GetTransactionData(searchArg);
+            TransactionData accountBookDataResult = _service.GetTransactionData(searchArg);
 
             return View(accountBookDataResult);
         }
@@ -72,10 +69,9 @@ namespace project.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult TransactionUpdateSave(TransactionData data)
         {
-            AccountBookService service = new AccountBookService(_configuration);
             if (ModelState.IsValid)
             {
-                service.UpdateTransactionData(data);
+                _service.UpdateTransactionData(data);
                 return RedirectToAction("AccountBookData", "AccountingSystem", new { id = data.AccountBookId });
             }
             return View("TransactionUpdate", data);
@@ -103,10 +99,9 @@ namespace project.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult TransactionInsertSave(TransactionData data)
         {
-            AccountBookService service = new AccountBookService(_configuration);
             if (ModelState.IsValid)
             {
-                service.InsertTransactionData(data);
+                _service.InsertTransactionData(data);
                 return RedirectToAction("AccountBookData", "AccountingSystem", new { id = data.AccountBookId });
             }
             return View("TransactionInsert", data);
@@ -120,8 +115,7 @@ namespace project.Controllers
         /// <returns></returns>
         public IActionResult TransactionDelete(int transactionId, int accountBookId)
         {
-            AccountBookService service = new AccountBookService(_configuration);
-            service.DeleteTransactionData(transactionId, accountBookId);
+            _service.DeleteTransactionData(transactionId, accountBookId);
 
             TempData["DeleteSuccess"] = "刪除成功";
             return RedirectToAction("AccountBookData", new { id = accountBookId });
@@ -148,10 +142,9 @@ namespace project.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AccountBookInsertSave(AccountBookData data)
         {
-            AccountBookService service = new AccountBookService(_configuration);
             if (ModelState.IsValid)
             {
-                service.InsertAccountBook(data);
+                _service.InsertAccountBook(data);
                 return RedirectToAction("AccountBookList", "AccountingSystem", new { id = data.UserId });
             }
             return View("AccountBookInsert", data);
@@ -166,8 +159,7 @@ namespace project.Controllers
         {
             try
             {
-                AccountBookService service = new AccountBookService(_configuration);
-                service.DeleteAccountBookData(accountBookId);
+                _service.DeleteAccountBookData(accountBookId);
 
                 TempData["DeleteAccountBookSuccess"] = "刪除帳本成功";
             }

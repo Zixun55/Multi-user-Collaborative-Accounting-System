@@ -1,26 +1,17 @@
-﻿using Microsoft.Extensions.Configuration;
-using Npgsql;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using Npgsql;
-using System.Linq;
-using System.Web;
+using project.Models.Interfaces;
 
 namespace project.Models.Services
 {
     public class AccountBookService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDatabaseHelper _dbHelper;
 
-        public AccountBookService(IConfiguration configuration)
+        public AccountBookService(IDatabaseHelper dbHelper)
         {
-            _configuration = configuration;
-        }
-
-        private string GetDBConnectionString()
-        {
-            return _configuration.GetConnectionString("DBConn");
+            _dbHelper = dbHelper;
         }
 
         /// <summary>
@@ -28,32 +19,31 @@ namespace project.Models.Services
         /// </summary>
         /// <param name="arg">使用者編號</param>
         /// <returns></returns>
-        public List<Models.AccountBookList> GetAccountBookList(Models.AccountBookList arg)
+        public List<AccountBookList> GetAccountBookList(AccountBookList arg)
         {
-            DataTable dt = new DataTable();
-            string sql = @"SELECT OWNER, ACCOUNT_BOOK_ID, ACCOUNT_BOOK_NAME, DESCRIPTION FROM ACCOUNT_BOOK WHERE OWNER = @OWNER";
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            string sql = @"SELECT OWNER, ACCOUNT_BOOK_ID, ACCOUNT_BOOK_NAME, DESCRIPTION 
+                           FROM ACCOUNT_BOOK WHERE OWNER = @OWNER";
+
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@OWNER", arg.UserId);
-                NpgsqlDataAdapter sqlAdapter = new NpgsqlDataAdapter(cmd);
-                sqlAdapter.Fill(dt);
-                conn.Close();
-            }
-            List<Models.AccountBookList> ListResult = new List<AccountBookList>();
+                { "@OWNER", arg.UserId }
+            };
+
+            DataTable dt = _dbHelper.ExecuteQuery(sql, parameters);
+            List<AccountBookList> result = new();
+
             foreach (DataRow row in dt.Rows)
             {
-                ListResult.Add(new AccountBookList()
+                result.Add(new AccountBookList
                 {
                     UserId = Convert.ToInt32(row["OWNER"]),
                     AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]),
                     AccountBookName = row["ACCOUNT_BOOK_NAME"].ToString(),
-                    Description = Convert.ToString(row["Description"])
+                    Description = row["DESCRIPTION"].ToString()
                 });
             }
 
-            return ListResult;
+            return result;
         }
 
         /// <summary>
@@ -61,35 +51,34 @@ namespace project.Models.Services
         /// </summary>
         /// <param name="arg">帳本編號</param>
         /// <returns></returns>
-        public List<Models.TransactionList> GetAccountBookData(Models.TransactionList arg)
+        public List<TransactionList> GetAccountBookData(TransactionList arg)
         {
-            DataTable dt = new DataTable();
-            string sql = @"SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY FROM TRANSACTION WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            string sql = @"SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY 
+                           FROM TRANSACTION WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", arg.AccountBookId);
-                NpgsqlDataAdapter sqlAdapter = new NpgsqlDataAdapter(cmd);
-                sqlAdapter.Fill(dt);
-                conn.Close();
-            }
-            List<Models.TransactionList> ListResult = new List<TransactionList>();
+                { "@ACCOUNT_BOOK_ID", arg.AccountBookId }
+            };
+
+            DataTable dt = _dbHelper.ExecuteQuery(sql, parameters);
+            List<TransactionList> result = new();
+
             foreach (DataRow row in dt.Rows)
             {
-                ListResult.Add(new TransactionList()
+                result.Add(new TransactionList
                 {
                     TransactionId = Convert.ToInt32(row["TRANSACTION_ID"]),
                     AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]),
                     Date = Convert.ToDateTime(row["DATE"]),
-                    Description = Convert.ToString(row["DESCRIPTION"]),
-                    Category = Convert.ToString(row["CATEGORY"]),
+                    Description = row["DESCRIPTION"].ToString(),
+                    Category = row["CATEGORY"].ToString(),
                     Amount = Convert.ToInt32(row["AMOUNT"]),
-                    Currency = Convert.ToString(row["TRANSACTION_CURRENCY"])
+                    Currency = row["TRANSACTION_CURRENCY"].ToString()
                 });
             }
 
-            return ListResult;
+            return result;
         }
 
         /// <summary>
@@ -97,32 +86,34 @@ namespace project.Models.Services
         /// </summary>
         /// <param name="arg">交易編號</param>
         /// <returns></returns>
-        public TransactionData GetTransactionData(Models.TransactionData arg)
+        public TransactionData GetTransactionData(TransactionData arg)
         {
-            DataTable dt = new DataTable();
-            string sql = @"SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY FROM TRANSACTION WHERE TRANSACTION_ID=@TRANSACTION_ID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            string sql = @"SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY 
+                           FROM TRANSACTION WHERE TRANSACTION_ID = @TRANSACTION_ID";
+
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@TRANSACTION_ID", arg.TransactionId);
-                NpgsqlDataAdapter sqlAdapter = new NpgsqlDataAdapter(cmd);
-                sqlAdapter.Fill(dt);
-                conn.Close();
-            }
-            TransactionData TransactionResult = new TransactionData();
+                { "@TRANSACTION_ID", arg.TransactionId }
+            };
+
+            DataTable dt = _dbHelper.ExecuteQuery(sql, parameters);
+            TransactionData result = new();
+
             foreach (DataRow row in dt.Rows)
             {
-                TransactionResult.TransactionId = Convert.ToInt32(row["TRANSACTION_ID"]);
-                TransactionResult.AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]);
-                TransactionResult.Date = Convert.ToDateTime(row["DATE"]);
-                TransactionResult.Description = Convert.ToString(row["DESCRIPTION"]);
-                TransactionResult.Category = Convert.ToString(row["CATEGORY"]);
-                TransactionResult.Amount = Convert.ToInt32(row["AMOUNT"]);
-                TransactionResult.Currency = Convert.ToString(row["TRANSACTION_CURRENCY"]);
+                result = new TransactionData
+                {
+                    TransactionId = Convert.ToInt32(row["TRANSACTION_ID"]),
+                    AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]),
+                    Date = Convert.ToDateTime(row["DATE"]),
+                    Description = row["DESCRIPTION"].ToString(),
+                    Category = row["CATEGORY"].ToString(),
+                    Amount = Convert.ToInt32(row["AMOUNT"]),
+                    Currency = row["TRANSACTION_CURRENCY"].ToString()
+                };
             }
 
-            return TransactionResult;
+            return result;
         }
 
         /// <summary>
@@ -131,28 +122,26 @@ namespace project.Models.Services
         /// <param name="data"></param>
         public void UpdateTransactionData(TransactionData arg)
         {
-            string sql = @"UPDATE TRANSACTION
-                   SET DATE = @DATE,
-                       AMOUNT = @AMOUNT,
-                       DESCRIPTION = @DESCRIPTION,
-                       TRANSACTION_CURRENCY = @CURRENCY,
-                       CATEGORY = @CATEGORY
-                   WHERE TRANSACTION_ID = @TRANSACTION_ID AND ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+            string sql = @"UPDATE TRANSACTION SET 
+                                DATE = @DATE,
+                                AMOUNT = @AMOUNT,
+                                DESCRIPTION = @DESCRIPTION,
+                                TRANSACTION_CURRENCY = @CURRENCY,
+                                CATEGORY = @CATEGORY
+                           WHERE TRANSACTION_ID = @TRANSACTION_ID AND ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@DATE", arg.Date);
-                cmd.Parameters.AddWithValue("@AMOUNT", arg.Amount);
-                cmd.Parameters.AddWithValue("@DESCRIPTION", arg.Description);
-                cmd.Parameters.AddWithValue("@CURRENCY", arg.Currency);
-                cmd.Parameters.AddWithValue("@CATEGORY", arg.Category);
-                cmd.Parameters.AddWithValue("@TRANSACTION_ID", arg.TransactionId);
-                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", arg.AccountBookId);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
+                { "@DATE", arg.Date },
+                { "@AMOUNT", arg.Amount },
+                { "@DESCRIPTION", arg.Description },
+                { "@CURRENCY", arg.Currency },
+                { "@CATEGORY", arg.Category },
+                { "@TRANSACTION_ID", arg.TransactionId },
+                { "@ACCOUNT_BOOK_ID", arg.AccountBookId }
+            };
+
+            _dbHelper.ExecuteNonQuery(sql, parameters);
         }
 
         /// <summary>
@@ -162,22 +151,20 @@ namespace project.Models.Services
         public void InsertTransactionData(TransactionData arg)
         {
             string sql = @"INSERT INTO TRANSACTION 
-                            (ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY) 
-                            VALUES (@ACCOUNT_BOOK_ID, @DATE, @AMOUNT, @DESCRIPTION, @CURRENCY, @CATEGORY)";
+                           (ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY) 
+                           VALUES (@ACCOUNT_BOOK_ID, @DATE, @AMOUNT, @DESCRIPTION, @CURRENCY, @CATEGORY)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@DATE", arg.Date);
-                cmd.Parameters.AddWithValue("@AMOUNT", arg.Amount);
-                cmd.Parameters.AddWithValue("@DESCRIPTION", arg.Description);
-                cmd.Parameters.AddWithValue("@CURRENCY", arg.Currency);
-                cmd.Parameters.AddWithValue("@CATEGORY", arg.Category);
-                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", arg.AccountBookId);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
+                { "@ACCOUNT_BOOK_ID", arg.AccountBookId },
+                { "@DATE", arg.Date },
+                { "@AMOUNT", arg.Amount },
+                { "@DESCRIPTION", arg.Description },
+                { "@CURRENCY", arg.Currency },
+                { "@CATEGORY", arg.Category }
+            };
+
+            _dbHelper.ExecuteNonQuery(sql, parameters);
         }
 
         /// <summary>
@@ -188,15 +175,13 @@ namespace project.Models.Services
         {
             string sql = @"DELETE FROM TRANSACTION WHERE TRANSACTION_ID = @TRANSACTION_ID AND ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@TRANSACTION_ID", transactionId);
-                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
+                { "@TRANSACTION_ID", transactionId },
+                { "@ACCOUNT_BOOK_ID", accountBookId }
+            };
+
+            _dbHelper.ExecuteNonQuery(sql, parameters);
         }
 
         /// <summary>
@@ -206,20 +191,18 @@ namespace project.Models.Services
         public void InsertAccountBook(AccountBookData arg)
         {
             string sql = @"INSERT INTO ACCOUNT_BOOK 
-                            (ACCOUNT_BOOK_NAME, DESCRIPTION, BASE_CURRENCY, OWNER) 
-                            VALUES (@ACCOUNT_BOOK_NAME, @DESCRIPTION, @BASE_CURRENCY, @OWNER)";
+                           (ACCOUNT_BOOK_NAME, DESCRIPTION, BASE_CURRENCY, OWNER) 
+                           VALUES (@ACCOUNT_BOOK_NAME, @DESCRIPTION, @BASE_CURRENCY, @OWNER)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_NAME", arg.AccountBookName);
-                cmd.Parameters.AddWithValue("@DESCRIPTION", arg.Description);
-                cmd.Parameters.AddWithValue("@BASE_CURRENCY", arg.BaseCurrency);
-                cmd.Parameters.AddWithValue("@OWNER", arg.UserId);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
+                { "@ACCOUNT_BOOK_NAME", arg.AccountBookName },
+                { "@DESCRIPTION", arg.Description },
+                { "@BASE_CURRENCY", arg.BaseCurrency },
+                { "@OWNER", arg.UserId }
+            };
+
+            _dbHelper.ExecuteNonQuery(sql, parameters);
         }
 
         /// <summary>
@@ -228,41 +211,19 @@ namespace project.Models.Services
         /// <param name="accountBookId"></param>
         public void DeleteAccountBookData(int accountBookId)
         {
-            string deleteAccountBookSql = @"DELETE FROM ACCOUNT_BOOK WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
             string deleteTransactionsSql = @"DELETE FROM TRANSACTION WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+            string deleteAccountBookSql = @"DELETE FROM ACCOUNT_BOOK WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                using (var transaction = conn.BeginTransaction())
-                {
-                    try
-                    {
-                        // 刪除交易紀錄
-                        using (var cmd1 = new NpgsqlCommand(deleteTransactionsSql, conn))
-                        {
-                            cmd1.Transaction = transaction;
-                            cmd1.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
-                            cmd1.ExecuteNonQuery();
-                        }
+                { "@ACCOUNT_BOOK_ID", accountBookId }
+            };
 
-                        // 刪除帳本
-                        using (var cmd2 = new NpgsqlCommand(deleteAccountBookSql, conn))
-                        {
-                            cmd2.Transaction = transaction;
-                            cmd2.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
-                            cmd2.ExecuteNonQuery();
-                        }
-
-                        transaction.Commit();
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        throw new Exception("刪除帳本失敗：" + ex.Message);
-                    }
-                }
-            }
+            _dbHelper.ExecuteTransaction(new List<(string, Dictionary<string, object>)>
+            {
+                (deleteTransactionsSql, parameters),
+                (deleteAccountBookSql, parameters)
+            });
         }
     }
 }

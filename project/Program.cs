@@ -1,4 +1,14 @@
+using project.Models.Helpers;
+using project.Models.Interfaces;
+using project.Models.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+string connStr = builder.Configuration.GetConnectionString("DBConn");
+
+builder.Services.AddScoped<IDatabaseHelper>(provider => new NpgsqlDatabaseHelper(connStr));
+builder.Services.AddScoped<AccountBookService>();
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

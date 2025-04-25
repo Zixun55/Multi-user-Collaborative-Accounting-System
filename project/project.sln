@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35818.85 d17.13
+VisualStudioVersion = 17.13.35818.85
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project", "project.csproj", "{0513F250-25B5-4931-8E3F-804772367F78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAccountingSystem", "..\TestAccountingSystem\TestAccountingSystem.csproj", "{6D0C489F-D5BA-437E-9060-BAAF0DD74373}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{0513F250-25B5-4931-8E3F-804772367F78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0513F250-25B5-4931-8E3F-804772367F78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0513F250-25B5-4931-8E3F-804772367F78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D0C489F-D5BA-437E-9060-BAAF0DD74373}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D0C489F-D5BA-437E-9060-BAAF0DD74373}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D0C489F-D5BA-437E-9060-BAAF0DD74373}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D0C489F-D5BA-437E-9060-BAAF0DD74373}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
