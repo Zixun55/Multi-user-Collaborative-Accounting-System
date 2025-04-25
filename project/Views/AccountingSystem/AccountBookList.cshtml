@@ -33,10 +33,25 @@
 <hr />
 
 <div class="mt-4">
-    <a href="@Url.Action("AccountBookInsert", "AccountingSystem", new { userId= ViewBag.UserId})" class="btn btn-primary">
+    <a href="@Url.Action("AccountBookInsert", "AccountingSystem", new { userId = ViewBag.UserId })" class="btn btn-primary">
         新增帳本
     </a>
+
+    <form asp-action="ImportAccountBook" asp-controller="CSVInoutput" method="post" enctype="multipart/form-data" style="display:inline;">
+        <input type="hidden" name="userId" value="@ViewBag.UserId" />
+        <input type="file" name="csvFile" id="csvFile" accept=".csv" style="display:none" required />
+        <button type="button" id="selectFileBtn" class="btn btn-secondary">選擇 CSV 檔案匯入</button>
+    </form>
+    <script>
+               document.getElementById('selectFileBtn').addEventListener('click', function () {
+                   document.getElementById('csvFile').click();
+               });
+               document.getElementById('csvFile').addEventListener('change', function () {
+                   this.form.submit();
+               });
+    </script>
 </div>
+
 <br>
 
 <table class="table table-bordered table-striped">

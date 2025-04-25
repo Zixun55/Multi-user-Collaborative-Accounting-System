@@ -225,5 +225,44 @@ namespace project.Models.Services
                 (deleteAccountBookSql, parameters)
             });
         }
+
+        /// <summary>
+        /// 查詢帳本
+        /// </summary>
+        /// <param name="arg"></param>
+        public AccountBookData SearchAccountBook(int accountBookId)
+        {
+            string sql = @"SELECT description, owner, account_book_id, account_book_name 
+                   FROM account_book 
+                   WHERE account_book_id = @ACCOUNT_BOOK_ID";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    // 添加參數
+                    cmd.Parameters.AddWithValue("@ACCOUNT_BOOK_ID", accountBookId);
+
+                    // 執行查詢
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new AccountBookData
+                            {
+                                Description = reader["description"] as string,
+                                AccountBookName = reader["account_book_name"] as string
+                            };
+                        }
+                        else
+                        {
+                            return null; // 找不到資料
+                        }
+                    }
+
+                }
+            }
+        }
     }
 }

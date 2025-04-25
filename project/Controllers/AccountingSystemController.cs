@@ -171,5 +171,42 @@ namespace project.Controllers
             }
             return RedirectToAction("AccountBookList");
         }
+
+        /// 顯示財務報表
+        /// </summary>
+        /// <param name="accountBookId"></param>
+        /// <returns></returns>
+        public IActionResult ShowReport(int accountBookId)
+        {
+            AccountBookService service = new AccountBookService(_configuration);
+            var searchArg = new TransactionList { AccountBookId = accountBookId };
+            List<TransactionList> transactions = service.GetAccountBookData(searchArg);
+            ViewBag.AccountBookId = accountBookId;
+            return View(transactions);
+        }
+
+
+        /// <summary>
+        /// 取得匯率資料（轉發 tw.rter.info 的 API 給前端）
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetExchangeRates()
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync("https://tw.rter.info/capi.php");
+                    response.EnsureSuccessStatusCode();
+
+                    var json = await response.Content.ReadAsStringAsync();
+                    return Content(json, "application/json");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "匯率抓取失敗", message = ex.Message });
+            }
+        }
     }
 }

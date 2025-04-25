@@ -24,26 +24,29 @@
     <a href="@Url.Action("TransactionInsert", "AccountingSystem", new { accountBookId=ViewBag.AccountBookId })" class="btn btn-primary">
         新增
     </a>
-    <!-- 隱藏的檔案選擇 input -->
-    <input type="file" name="csvFile" id="csvFile" accept=".csv" style="display:none" required />
-
-    <!-- 自訂按鈕 -->
-    <button type="button" id="selectFileBtn">選擇 CSV 檔案匯入</button>
-
-    <script>
-        document.getElementById('selectFileBtn').addEventListener('click', function() {
-            document.getElementById('csvFile').click();
-        });
-    </script>
+    <a href="@Url.Action("ShowReport", "AccountingSystem", new { accountBookId=ViewBag.AccountBookId })" class="btn btn-success">
+        顯示財務報表
+    </a>
     <button type="button" id="exportBtn" class="btn btn-success">匯出帳本</button>
     <script>
         document.getElementById('exportBtn').onclick = function() {
-            var accountBookId = '@ViewBag.AccountBookId'; // 替換成你實際的帳本ID來源
-            window.location.href = '/CSVInoutput/ExportAccountBook?accountBookId=' + accountBookId;
+            var userId = '@ViewBag.User';
+            var accountBookId = '@ViewBag.AccountBookId';
+            window.location.href = '/CSVInoutput/ExportAccountBook?userId=' + userId + '&accountBookId=' + accountBookId;
         };
     </script>
 
-</div><br />
+</div><br />    
+
+<div class="mb-4">
+    <label for="currencySelector" class="form-label">選擇顯示幣別：</label>
+    <select id="currencySelector" class="form-select" style="width: 200px;">
+        <option value="TWD">新台幣 (TWD)</option>
+        <option value="USD">美元 (USD)</option>
+        <option value="EUR">歐元 (EUR)</option>
+        <option value="JPY">日圓 (JPY)</option>
+    </select>
+</div>
 
 <table class="table table-bordered table-striped">
     <thead>
@@ -77,8 +80,64 @@
                 <td>@item.Date</td>
                 <td>@item.Category</td>
                 <td>@item.Description</td>
-                <td>@($"{item.Currency} {item.Amount:N0}")</td>
+                <td class="amount-cell" data-amount="@item.Amount">@($"{item.Currency} {item.Amount:N2}")</td>
             </tr>
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        document.getElementById("currencySelector").addEventListener("change", async function () {
+            const selectedCurrency = this.value;
+            const amountCells = document.querySelectorAll(".amount-cell");
+
+            if (selectedCurrency === "TWD") {
+                amountCells.forEach(cell => {
+                    const amount = parseFloat(cell.dataset.amount);
+                    if (!isNaN(amount)) {
+                        cell.textContent = `TWD ${amount.toLocaleString(undefined, {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        })}`;
+                    }
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch('/AccountingSystem/GetExchangeRates');
+                const data = await response.json();
+
+                const USD_TO_TWD_KEY = "USDTWD";
+                const USD_TO_TARGET_KEY = "USD" + selectedCurrency;
+
+                const usdToTwd = data[USD_TO_TWD_KEY]?.Exrate;
+                const usdToTarget = data[USD_TO_TARGET_KEY]?.Exrate;
+
+                if (!usdToTwd || !usdToTarget) {
+                    console.error(`缺少匯率資料：${USD_TO_TWD_KEY} 或 ${USD_TO_TARGET_KEY}`);
+                    alert("無法取得匯率資料，請稍後再試！");
+                    return;
+                }
+
+                const twdToTarget = usdToTarget / usdToTwd;
+
+                amountCells.forEach(cell => {
+                    const twdAmount = parseFloat(cell.dataset.amount);
+                    if (!isNaN(twdAmount)) {
+                        const converted = twdAmount * twdToTarget;
+                        cell.textContent = `${selectedCurrency} ${converted.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}`;
+                    }
+                });
+
+            } catch (error) {
+                console.error("匯率查詢失敗：", error);
+                alert("匯率查詢失敗，請檢查網路連線或稍後再試！");
+            }
+        });
+    </script>
+}
