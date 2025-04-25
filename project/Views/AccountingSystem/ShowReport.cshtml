@@ -1,0 +1,107 @@
+﻿@model List<project.Models.TransactionList>
+
+@{
+    ViewBag.Title = "財務報表";
+
+    var categoryGroups = Model
+        .GroupBy(x => x.Category)
+        .Select(g => new { Category = g.Key, Total = g.Sum(x => x.Amount) })
+        .ToList();
+
+    var chartLabels = string.Join(",", categoryGroups.Select(g => $"'{g.Category}'"));
+    var chartData = string.Join(",", categoryGroups.Select(g => g.Total));
+    var barLabels = Model.Select(x => x.Description).ToList();
+    var barAmounts = Model.Select(x => x.Amount).ToList();
+}
+
+<h1>財務報表</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <canvas id="pieChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="barChart"></canvas>
+    </div>
+</div>
+
+<a href="@Url.Action("AccountBookData", "AccountingSystem", new { id = ViewBag.AccountBookId })" class="btn btn-secondary mt-4">
+    返回帳本內容
+</a>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 圓餅圖 - 類別分佈
+        new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: {
+                labels: [@Html.Raw(chartLabels)],
+                datasets: [{
+                    label: '各類別金額',
+                    data: [@Html.Raw(chartData)],
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffcd56', '#4bc0c0', '#9966ff'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                return `${label}: TWD ${value}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 長條圖 - 每筆交易
+        const barLabels = @Html.Raw(Json.Serialize(barLabels));
+        const barAmounts = @Html.Raw(Json.Serialize(barAmounts));
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [{
+                    label: '金額',
+                    data: barAmounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += 'TWD ' + context.parsed.x;
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
