@@ -17,6 +17,10 @@
 <h1>財務報表</h1>
 <hr />
 
+<a href="@Url.Action("AccountBookData", "AccountingSystem", new { id = ViewBag.AccountBookId })" class="btn btn-secondary mt-4">
+    返回帳本資料
+</a>
+
 <div class="row">
     <div class="col-md-6">
         <canvas id="pieChart"></canvas>
@@ -25,10 +29,6 @@
         <canvas id="barChart"></canvas>
     </div>
 </div>
-
-<a href="@Url.Action("AccountBookData", "AccountingSystem", new { id = ViewBag.AccountBookId })" class="btn btn-secondary mt-4">
-    返回帳本內容
-</a>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
