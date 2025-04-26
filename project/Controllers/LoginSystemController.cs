@@ -6,11 +6,11 @@ namespace project.Controllers
 {
     public class LoginSystemController : Controller
     {
-        private readonly IConfiguration _configuration;
+        private readonly LoginSystemService _service;
 
-        public LoginSystemController(IConfiguration configuration)
+        public LoginSystemController(LoginSystemService service)
         {
-            _configuration = configuration;
+            _service = service;
         }
 
         /// <summary>
@@ -33,8 +33,7 @@ namespace project.Controllers
         {
             if (ModelState.IsValid)
             {
-                LoginSystemService service = new LoginSystemService(_configuration);
-                int? userId = service.GetUserId(user.Email, user.Password);
+                int? userId = _service.GetUserId(user.Email, user.Password);
 
                 if (userId != null)
                 {
@@ -87,12 +86,11 @@ namespace project.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Register(UserData data)
         {
-            LoginSystemService service = new LoginSystemService(_configuration);
             if (ModelState.IsValid)
             {
-                if (!service.CheckEmail(data.Email))
+                if (!_service.CheckEmail(data.Email))
                 {
-                    service.CreateNewUser(data);
+                    _service.CreateNewUser(data);
                     TempData["RegisterSuccess"] = "註冊成功";
                     return RedirectToAction("Login", "LoginSystem");
                 }

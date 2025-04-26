@@ -1,26 +1,17 @@
-﻿using Microsoft.Extensions.Configuration;
-using Npgsql;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using Npgsql;
-using System.Linq;
-using System.Web;
+using project.Models.Interfaces;
 
 namespace project.Models.Services
 {
     public class LoginSystemService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDatabaseHelper _dbHelper;
 
-        public LoginSystemService(IConfiguration configuration)
+        public LoginSystemService(IDatabaseHelper dbHelper)
         {
-            _configuration = configuration;
-        }
-
-        private string GetDBConnectionString()
-        {
-            return _configuration.GetConnectionString("DBConn");
+            _dbHelper = dbHelper;
         }
 
         /// <summary>
@@ -33,18 +24,15 @@ namespace project.Models.Services
         {
             string sql = @"SELECT USER_ID FROM USERS WHERE EMAIL = @EMAIL AND PASSWORDS = @PASSWORDS";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@EMAIL", email);
-                    cmd.Parameters.AddWithValue("@PASSWORDS", password);
-                    var result = cmd.ExecuteScalar();
+                { "@EMAIL", email },
+                { "@PASSWORDS", password }
+            };
 
-                    return result != null ? Convert.ToInt32(result) : (int?)null;
-                }
-            }
+            object result = _dbHelper.ExecuteScalar(sql, parameters);
+
+            return result != null ? Convert.ToInt32(result) : (int?)null;
         }
 
         /// <summary>
@@ -56,17 +44,15 @@ namespace project.Models.Services
         {
             string sql = @"SELECT COUNT(*) FROM USERS WHERE EMAIL = @EMAIL";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@EMAIL", email);
+                { "@EMAIL", email }
+            };
 
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    return count > 0;
-                }
-            }
+            object result = _dbHelper.ExecuteScalar(sql, parameters);
+            int count = result != null ? Convert.ToInt32(result) : 0;
+
+            return count > 0;
         }
 
         /// <summary>
@@ -79,16 +65,14 @@ namespace project.Models.Services
                             (USER_NAME, EMAIL, PASSWORDS) 
                             VALUES (@USER_NAME, @EMAIL, @PASSWORDS)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this.GetDBConnectionString()))
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@USER_NAME", arg.UserName);
-                cmd.Parameters.AddWithValue("@EMAIL", arg.Email);
-                cmd.Parameters.AddWithValue("@PASSWORDS", arg.Password);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
+                { "@USER_NAME", arg.UserName },
+                { "@EMAIL", arg.Email },
+                { "@PASSWORDS", arg.Password }
+            };
+
+            _dbHelper.ExecuteNonQuery(sql, parameters);
         }
     }
 }

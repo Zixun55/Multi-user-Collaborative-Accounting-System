@@ -76,5 +76,19 @@ namespace project.Models.Helpers
                 }
             }
         }
+
+        public object ExecuteScalar(string sql, Dictionary<string, object> parameters)
+        {
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                var cmd = new NpgsqlCommand(sql, conn);
+                foreach (var param in parameters)
+                {
+                    cmd.Parameters.AddWithValue(param.Key, param.Value);
+                }
+                return cmd.ExecuteScalar();
+            }
+        }
     }
 }

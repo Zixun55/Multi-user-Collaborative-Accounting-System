@@ -8,7 +8,7 @@ string connStr = builder.Configuration.GetConnectionString("DBConn");
 
 builder.Services.AddScoped<IDatabaseHelper>(provider => new NpgsqlDatabaseHelper(connStr));
 builder.Services.AddScoped<AccountBookService>();
-
+builder.Services.AddScoped<LoginSystemService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
