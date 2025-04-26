@@ -25,7 +25,7 @@ namespace TestAccountingSystem
                 .Returns(new DataTable());
 
             var service = new AccountBookService(mockDbHelper.Object);
-            var input = new AccountBookList { UserId = 1 };
+            var input = new AccountBookList { UserId = "1" };
             var result = service.GetAccountBookList(input);
 
             Assert.IsNotNull(result);
@@ -54,7 +54,7 @@ namespace TestAccountingSystem
                 .Returns(dt);
 
             var service = new AccountBookService(mockDbHelper.Object);
-            var input = new AccountBookList { UserId = 1 };
+            var input = new AccountBookList { UserId = "1" };
             var result = service.GetAccountBookList(input);
 
             Assert.IsNotNull(result);
@@ -274,7 +274,7 @@ namespace TestAccountingSystem
                 AccountBookName = "Test Book",
                 Description = "insert a new account book",
                 BaseCurrency = "TWD",
-                UserId = 123
+                UserId = "123"
             };
 
             service.InsertAccountBook(testData);

@@ -21,8 +21,7 @@ namespace project.Models.Services
         /// <returns></returns>
         public List<AccountBookList> GetAccountBookList(AccountBookList arg)
         {
-            string sql = @"SELECT OWNER, ACCOUNT_BOOK_ID, ACCOUNT_BOOK_NAME, DESCRIPTION 
-                           FROM ACCOUNT_BOOK WHERE OWNER = @OWNER";
+            string sql = @"SELECT OWNER, ACCOUNT_BOOK_ID, ACCOUNT_BOOK_NAME, DESCRIPTION FROM ACCOUNT_BOOK WHERE ',' || OWNER || ',' LIKE '%,' || @OWNER || ',%'";
 
             var parameters = new Dictionary<string, object>
             {
@@ -36,7 +35,7 @@ namespace project.Models.Services
             {
                 result.Add(new AccountBookList
                 {
-                    UserId = Convert.ToInt32(row["OWNER"]),
+                    UserId = row["OWNER"].ToString(),
                     AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]),
                     AccountBookName = row["ACCOUNT_BOOK_NAME"].ToString(),
                     Description = row["DESCRIPTION"].ToString()

@@ -8,7 +8,7 @@ namespace project.Models
     public class AccountBookList
     {
         [DisplayName("使用者編號")]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
 
         [DisplayName("帳本編號")]
         public int AccountBookId { get; set; }

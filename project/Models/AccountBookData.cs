@@ -6,7 +6,7 @@ namespace project.Models
     public class AccountBookData
     {
         [DisplayName("使用者編號")]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
 
         [DisplayName("帳本名稱")]
         [Required(ErrorMessage = "帳本名稱未填寫")]

@@ -27,9 +27,9 @@ namespace project.Controllers
                 return RedirectToAction("Login", "LoginSystem");
             }
 
-            ViewBag.UserId = userId;
+            ViewBag.UserId = userId.ToString();
 
-            var searchArg = new AccountBookList { UserId = userId.Value };
+            var searchArg = new AccountBookList { UserId = userId.ToString() };
             List<AccountBookList> listResult = _service.GetAccountBookList(searchArg);
 
             return View(listResult);
@@ -126,7 +126,7 @@ namespace project.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public ActionResult AccountBookInsert(int userId)
+        public ActionResult AccountBookInsert(string userId)
         {
             var model = new AccountBookData();
             model.UserId = userId;

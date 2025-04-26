@@ -56,7 +56,7 @@ namespace project.Controllers
 
 
         [HttpPost]
-        public IActionResult ImportAccountBook(int userId, IFormFile csvFile)
+        public IActionResult ImportAccountBook(string userId, IFormFile csvFile)
         {
             if (csvFile == null || csvFile.Length == 0)
             {
