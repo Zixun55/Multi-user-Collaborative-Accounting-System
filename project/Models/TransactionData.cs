@@ -25,7 +25,7 @@ namespace project.Models
 
         [Required(ErrorMessage = "金額未填寫")]
         [DisplayName("交易金額")]
-        public int? Amount { get; set; }
+        public int Amount { get; set; }
 
         [Required(ErrorMessage = "幣別未填寫")]
         [DisplayName("交易幣別")]

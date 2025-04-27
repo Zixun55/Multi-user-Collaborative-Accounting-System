@@ -254,5 +254,45 @@ namespace project.Models.Services
                 AccountBookName = row["ACCOUNT_BOOK_NAME"].ToString()
             };
         }
+        /// <summary>
+        /// 預算查詢
+        /// </summary>
+        /// <param name="accountBookID"></param>
+        public List<Budget> GetBudgets(int accountBookID)
+        {
+            var arg = new TransactionList
+            {
+                AccountBookId = Convert.ToInt32(accountBookID)
+            };
+
+            var transactions = GetAccountBookData(arg);
+
+            return transactions.Select(t => new Budget
+            {
+                BudgetID = t.TransactionId,
+                Amount = t.Amount,
+                Category = t.Category,
+                Period = 1 // 根據業務需求設定
+            }).ToList();
+        }
+
+        /// <summary>
+        /// 預算新增
+        /// </summary>
+        /// <param name="budget"></param>
+        public void CreateBudget(Budget budget)
+        {
+            var transactionData = new TransactionData
+            {
+                AccountBookId = Convert.ToInt32(budget.AccountBookID),
+                Amount = budget.Amount,
+                Category = budget.Category,
+                Date = DateTime.Now,
+                Currency = "TWD"
+            };
+
+            InsertTransactionData(transactionData);
+        }
+
     }
 }

@@ -24,6 +24,10 @@
     <a href="@Url.Action("TransactionInsert", "AccountingSystem", new { accountBookId=ViewBag.AccountBookId })" class="btn btn-primary">
         新增
     </a>
+    <a href="@Url.Action("Index", "Budget", new { accountBookId = ViewBag.AccountBookId})"
+       class="btn btn-warning">
+        <i class="bi bi-calculator"></i> 預算管理
+    </a>
     <a href="@Url.Action("ShowReport", "AccountingSystem", new { accountBookId=ViewBag.AccountBookId })" class="btn btn-success">
         顯示財務報表
     </a>

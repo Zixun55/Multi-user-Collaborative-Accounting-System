@@ -1,0 +1,32 @@
+﻿@model project.Models.Budget
+
+@{
+    ViewBag.Title = "預算詳情";
+}
+
+<h2>預算詳情</h2>
+
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>預算 ID:</dt>
+        <dd>@Model.BudgetID</dd>
+
+        <dt>類別:</dt>
+        <dd>@Model.Category</dd>
+
+        <dt>金額:</dt>
+        <dd>@Model.Amount</dd>
+
+        <dt>週期 (月):</dt>
+        <dd>@Model.Period</dd>
+
+        <dt>賬簿:</dt>
+        <dd>@Model.AccountBookName</dd>
+    </dl>
+</div>
+
+<p>
+    @Html.ActionLink("編輯", "Edit", new { budgetID = Model.BudgetID, accountBookId = ViewBag.AccountBookId }, new { @class = "btn btn-primary" })
+    @Html.ActionLink("返回列表", "Index", "Budget", new { accountBookId = ViewBag.AccountBookId})
+</p>

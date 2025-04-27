@@ -1,0 +1,49 @@
+﻿@model Budget
+
+@{
+    ViewBag.Title = "創建預算";
+}
+
+<h2>創建新預算</h2>
+
+@using (Html.BeginForm("CreateBudget", "Budget", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.AccountBookID)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Category, "類別", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.Category, ViewBag.Categories as List<SelectListItem>, "-- 選擇類別 --", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Category, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Amount, "金額", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Amount, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Period, "週期 (月)", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Period, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Period, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="創建" class="btn btn-primary" />
+                @Html.ActionLink("返回列表", "Index", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-default" })
+            </div>
+        </div>
+    </div>
+}
