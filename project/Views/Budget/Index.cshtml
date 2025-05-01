@@ -7,6 +7,7 @@
 <h2>@Model.AccountBookName 的預算管理</h2>
 
 <p>
+    @Html.ActionLink("顯示預算圖表", "ShowReport", "Budget", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-primary" })
     @Html.ActionLink("創建新預算", "Create", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-primary" })
     @Html.ActionLink("返回賬簿", "AccountBookData", "AccountingSystem", new { id = Model.AccountBookID }, new { @class = "btn btn-primary" })
 </p>

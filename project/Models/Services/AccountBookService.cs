@@ -293,6 +293,19 @@ namespace project.Models.Services
 
             InsertTransactionData(transactionData);
         }
+        public void SetMonthlyBudget(MonthlyBudget budget)
+        {
+            // 儲存預算到資料庫，略
+        }
+
+        public MonthlyBudget GetMonthlyBudget(int userId, int year, int month)
+        {
+            // 從資料庫取得該月預算與分類預算，略
+            // 回傳 MonthlyBudget 物件
+            MonthlyBudget monthlyBudget = new MonthlyBudget();
+            return monthlyBudget;
+        }
+
 
     }
 }

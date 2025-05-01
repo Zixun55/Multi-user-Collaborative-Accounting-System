@@ -1,0 +1,64 @@
+﻿@model List<TransactionList>
+@{
+    ViewData["Title"] = "財務報表";
+    decimal totalBudget = ViewBag.TotalBudget;
+    decimal totalSpent = ViewBag.TotalSpent;
+    decimal remainingBudget = ViewBag.RemainingBudget;
+}
+
+<!-- 引入 Chart.js 庫 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 添加圓餅圖容器 -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>預算使用情況</h4>
+            </div>
+            <div class="card-body">
+                <canvas id="budgetPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 初始化圓餅圖 -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var ctx = document.getElementById('budgetPieChart').getContext('2d');
+
+        var data = {
+            labels: ['已用預算', '剩餘預算'],
+            datasets: [{
+                data: [@totalSpent, @remainingBudget],
+                backgroundColor: ['#FF6384', '#36A2EB'],
+                hoverBackgroundColor: ['#FF6384', '#36A2EB']
+            }]
+        };
+
+        var options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var dataset = data.datasets[tooltipItem.datasetIndex];
+                        var total = dataset.data.reduce(function(previousValue, currentValue) {
+                            return previousValue + currentValue;
+                        });
+                        var currentValue = dataset.data[tooltipItem.index];
+                        var percentage = Math.floor(((currentValue/total) * 100)+0.5);
+                        return data.labels[tooltipItem.index] + ': ' + currentValue + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        };
+
+        var myPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: data,
+            options: options
+        });
+    });
+</script>

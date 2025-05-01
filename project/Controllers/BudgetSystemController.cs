@@ -218,5 +218,24 @@ namespace project.Controllers
                 new SelectListItem { Value = "其他", Text = "其他" }
             };
         }
+
+        public IActionResult ShowReport(int accountBookID)
+        {
+            var searchArg = new TransactionList { AccountBookId = accountBookID };
+            List<TransactionList> transactions = _service.GetAccountBookData(searchArg);
+
+            // 計算總預算（假設收入為正數）
+            decimal totalIncome = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount);
+            decimal totalExpenses = transactions.Where(t => t.Amount < 0).Sum(t => -t.Amount);
+            decimal remainingBudget = totalIncome - totalExpenses;
+
+            ViewBag.AccountBookId = accountBookID;
+            ViewBag.TotalBudget = totalIncome;
+            ViewBag.TotalSpent = totalExpenses;
+            ViewBag.RemainingBudget = remainingBudget;
+
+            return View(transactions);
+        }
+
     }
 }
