@@ -18,5 +18,11 @@ namespace project.Models
         
         [DisplayName("帳本描述")]
         public string Description { get; set; }
+
+        [DisplayName("貨幣單位")]
+        public string BaseCurrency { get; set; }
+
+        [DisplayName("編輯人員")]
+        public string Owners { get; set; }
     }
 }

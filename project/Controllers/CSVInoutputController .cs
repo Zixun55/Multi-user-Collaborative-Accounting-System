@@ -24,7 +24,7 @@ namespace project.Controllers
             var searchArg1 = new AccountBookList {AccountBookId = accountBookId };
             AccountBookData accountBookDataResult1 = _service.SearchAccountBook(accountBookId);
             var searchArg2 = new TransactionList { AccountBookId = accountBookId };
-            List<TransactionList> accountBookDataResult = _service.GetAccountBookData(searchArg2);
+            List<TransactionList> accountBookDataResult = _service.GetTransactionList(searchArg2);
 
             // 使用MemoryStream和StreamWriter自動添加BOM
             using (var memoryStream = new MemoryStream())
