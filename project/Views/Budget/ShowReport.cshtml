@@ -6,6 +6,16 @@
     decimal remainingBudget = ViewBag.RemainingBudget;
 }
 
+<p>
+    @Html.ActionLink(
+            "返回預算詳情",
+            "Details",
+            "Budget",
+            new { budgetID = ViewBag.budgetID, accountBookID = ViewBag.accountBookID },
+            new { @class = "btn btn-primary" }
+            )
+
+</p>
 <!-- 引入 Chart.js 庫 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

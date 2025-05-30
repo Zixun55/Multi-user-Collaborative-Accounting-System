@@ -7,7 +7,6 @@
 <h2>@Model.AccountBookName 的預算管理</h2>
 
 <p>
-    @Html.ActionLink("顯示預算圖表", "ShowReport", "Budget", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-primary" })
     @Html.ActionLink("創建新預算", "Create", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-primary" })
     @Html.ActionLink("返回賬簿", "AccountBookData", "AccountingSystem", new { id = Model.AccountBookID }, new { @class = "btn btn-primary" })
 </p>
@@ -15,9 +14,9 @@
 <table class="table">
     <thead>
         <tr>
-            <th>類別</th>
             <th>金額</th>
-            <th>週期 (月)</th>
+            <th>開始日期</th>
+            <th>結束日期</th>
             <th>操作</th>
         </tr>
     </thead>
@@ -25,9 +24,9 @@
         @foreach (var item in Model.Budgets)
         {
             <tr>
-                <td>@item.Category</td>
                 <td>@item.Amount</td>
-                <td>@item.Period</td>
+                <td>@item.StartDate</td>
+                <td>@item.EndDate</td>
                 <td>
                     @Html.ActionLink("詳情", "Details", new { budgetID = item.BudgetID, accountBookID = ViewBag.AccountBookId }) |
                     @Html.ActionLink("編輯", "Edit", new { budgetID = item.BudgetID,accountBookId = ViewBag.AccountBookId }) |

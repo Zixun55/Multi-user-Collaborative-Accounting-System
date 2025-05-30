@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using project.Models;
 using project.Models.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace project.Controllers
 {
@@ -13,100 +14,135 @@ namespace project.Controllers
         {
             _service = service;
         }
-
         // 顯示指定賬簿的所有預算
         public ActionResult Index(int accountBookID)
         {
-            var arg = new TransactionList { AccountBookId = accountBookID };
-            var transactions = _service.GetAccountBookData(arg);
+            // 1. 使用新的服務方法獲取特定帳本的預算列表
+            List<BudgetList> budgets = _service.GetBudgetsForAccountBook(accountBookID);
 
-            // 轉換為 Budget 列表
-            var budgets = transactions.Select(t => new Budget
+            // 2. 獲取帳本名稱
+            var accountBook = _service.SearchAccountBook(accountBookID);
+            string accountBookName = accountBook?.AccountBookName ?? "未命名帳簿";
+
+            // 3. (可選) 如果 Budget model 需要 AccountBookName，可以在這裡賦值
+            foreach (var budget in budgets)
             {
-                BudgetID = t.TransactionId,
-                Amount = t.Amount,
-                Category = t.Category,
-                Period = 1,
-                AccountBookID = accountBookID
-            }).ToList();
+                budget.AccountBookName = accountBookName;
+            }
 
-            // 建立視圖模型
+            // 4. 建立視圖模型
             var viewModel = new BudgetViewModel
             {
-                Budgets = budgets,
+                Budgets = budgets, // budgets 現在是從 Budget 資料表來的
                 AccountBookID = accountBookID,
-                AccountBookName = _service.SearchAccountBook(accountBookID).AccountBookName
+                AccountBookName = accountBookName
             };
-            ViewBag.AccountBookId = accountBookID;
 
-            return View(viewModel);  // 或 return View("BudgetList", viewModel);
+            ViewBag.AccountBookId = accountBookID; // 方便 View 中使用
+            return View(viewModel);
         }
+
+        //// 顯示指定賬簿的所有預算
+        //public ActionResult Index(int accountBookID)
+        //{
+        //    var arg = new TransactionList { AccountBookId = accountBookID };
+        //    var transactions = _service.GetAccountBookData(arg);
+
+        //    // 轉換為 Budget 列表
+        //    var budgets = transactions.Select(t => new Budget
+        //    {
+        //        BudgetID = t.TransactionId,
+        //        Amount = t.Amount,
+        //        AccountBookID = accountBookID
+        //    }).ToList();
+
+        //    // 建立視圖模型
+        //    var viewModel = new BudgetViewModel
+        //    {
+        //        Budgets = budgets,
+        //        AccountBookID = accountBookID,
+        //        AccountBookName = _service.SearchAccountBook(accountBookID).AccountBookName
+        //    };
+        //    ViewBag.AccountBookId = accountBookID;
+
+        //    return View(viewModel);  // 或 return View("BudgetList", viewModel);
+        //}
 
 
         // 顯示單個預算詳情
         public ActionResult Details(int budgetID, int accountBookID)
         {
-            var transaction = _service.GetTransactionData(new TransactionData
-            {
-                TransactionId = budgetID,
-                AccountBookId = accountBookID
-            });
+            // 1. 獲取預算詳情
+            var budget = _service.GetBudgetById(budgetID);
+            if (budget == null) return NotFound();
+            
+            // 2. 獲取包含在預算中的交易
+            List<TransactionData> includedTransactions =
+                _service.GetTransactionsIncludedInBudget(accountBookID);
 
-            if (transaction == null)
-            {
-                return NotFound();
-            }
-
-            // 取得帳本名稱
-            var accountBook = _service.SearchAccountBook(accountBookID);
-
-            var budget = new Budget
-            {
-                BudgetID = transaction.TransactionId,
-                Amount = transaction.Amount,
-                Category = transaction.Category,
-                AccountBookID = accountBookID,
-                Period = 1,
-                // 設置帳簿名稱
-                AccountBookName = accountBook?.AccountBookName ?? "未命名帳簿"
-            };
-            ViewBag.AccountBookId = accountBookID;
-
-            return View(budget);
+            ViewBag.AccountBookId = accountBookID; // 方便 View 中使用
+            ViewBag.budgetID = budgetID; // 方便 View 中使用
+            return View(includedTransactions);
         }
 
+        //public ActionResult Details(int budgetID, int accountBookID)
+        //{
+        //    var searchArg = new TransactionList { AccountBookId = accountBookID};
+        //    List<TransactionList> accountBookDataResult = _service.GetAccountBookData(searchArg);
+        //    ViewBag.AccountBookId = accountBookID;
+
+        //    return View(accountBookDataResult);
+        //    var transaction = _service.GetAccountBookData(new TransactionData
+        //    {
+        //        TransactionId = transaction.AccountBookId,
+        //        AccountBookId = accountBookID
+        //    });
+
+        //    if (transaction == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    // 取得帳本名稱
+        //    var accountBook = _service.SearchAccountBook(accountBookID);
+
+        //    var budget = new BudgetList
+        //    {
+        //        BudgetID = transaction.TransactionId,
+        //        Amount = transaction.Amount,
+        //        AccountBookID = accountBookID,
+        //        AccountBookName = accountBook?.AccountBookName ?? "未命名帳簿"
+        //    };
+        //    ViewBag.AccountBookId = accountBookID;
+
+        //    return View(budget);
+        //}
 
         // 顯示創建預算表單
-        public ActionResult Create(int accountBookID)
+        public ActionResult Create(int accountbookid)
         {
-            ViewBag.Categories = GetCategoryList();
-            return View(new Budget { AccountBookID = accountBookID });
+            var model = new Budget();
+            model.AccountBookID = accountbookid;
+            return View(model);
         }
+        //public ActionResult Create(int accountBookID)
+        //{
+        //    ViewBag.Categories = GetCategoryList();
+        //    return View(new BudgetList { AccountBookID = accountBookID });
+        //}
 
-        // 處理創建預算請求
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateBudget(Budget budget)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = GetCategoryList();
-                return View(budget);
+                _service.InsertBudget(budget); // 這才會寫入 Budget table
+                return RedirectToAction("Index", "Budget", new { id = budget.AccountBookID });
             }
-
-            var transactionData = new TransactionData
-            {
-                AccountBookId = budget.AccountBookID,
-                Amount = budget.Amount,
-                Category = budget.Category,
-                Date = DateTime.Now,
-                Currency = "TWD"
-            };
-
-            _service.InsertTransactionData(transactionData);
-
-            return RedirectToAction("Index", new { accountBookID = budget.AccountBookID });
+            return View("Create", budget);
         }
+
 
         // 顯示編輯預算表單
         public ActionResult Edit(int budgetID, int accountBookID)
@@ -125,20 +161,18 @@ namespace project.Controllers
             ViewBag.Categories = GetCategoryList();
             ViewBag.AccountBookId = accountBookID;
 
-            return View(new Budget
+            return View(new BudgetList
             {
                 BudgetID = transaction.TransactionId,
                 Amount = transaction.Amount,
-                Category = transaction.Category,
-                AccountBookID = accountBookID,
-                Period = 1
+                AccountBookID = accountBookID
             });
         }
 
         // 處理更新預算請求
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult UpdateBudget(int budgetID, Budget budget)
+        public ActionResult UpdateBudget(int budgetID, BudgetList budget)
         {
             if (!ModelState.IsValid)
             {
@@ -152,7 +186,6 @@ namespace project.Controllers
                 TransactionId = budgetID,
                 AccountBookId = budget.AccountBookID,
                 Amount = budget.Amount,
-                Category = budget.Category,
                 Date = DateTime.Now,
                 Currency = "TWD"
             };
@@ -183,13 +216,11 @@ namespace project.Controllers
             var accountBookList = _service.GetAccountBookList(arg2);
 
             // 建立完整的預算模型
-            var budget = new Budget
+            var budget = new BudgetList
             {
                 BudgetID = transaction.TransactionId,
                 Amount = transaction.Amount,
-                Category = transaction.Category,
-                AccountBookID = accountBookID,
-                Period = 1 // 或從其他地方取得
+                AccountBookID = accountBookID
             };
 
             // 傳遞單一預算對象，而非集合
@@ -219,7 +250,7 @@ namespace project.Controllers
             };
         }
 
-        public IActionResult ShowReport(int accountBookID)
+        public IActionResult ShowReport(int accountBookID, int budgetID)
         {
             var searchArg = new TransactionList { AccountBookId = accountBookID };
             List<TransactionList> transactions = _service.GetAccountBookData(searchArg);
@@ -233,6 +264,9 @@ namespace project.Controllers
             ViewBag.TotalBudget = totalIncome;
             ViewBag.TotalSpent = totalExpenses;
             ViewBag.RemainingBudget = remainingBudget;
+
+            ViewBag.accountBookID = accountBookID;
+            ViewBag.budgetID = budgetID;
 
             return View(transactions);
         }

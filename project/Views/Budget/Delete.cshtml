@@ -1,4 +1,4 @@
-﻿@model project.Models.Budget
+﻿@model project.Models.BudgetList
 
 @{
     ViewData["Title"] = "刪除預算";
@@ -11,13 +11,13 @@
     <hr />
     <dl class="dl-horizontal">
         <dt>類別:</dt>
-        <dd>@Model.Category</dd>
+        <dd>@Model.Description</dd>
 
         <dt>金額:</dt>
         <dd>@Model.Amount</dd>
 
         <dt>週期 (月):</dt>
-        <dd>@Model.Period</dd>
+        <dd>@Model.AccountBookID</dd>
     </dl>
 
     @using (Html.BeginForm("DeleteBudget", "Budget", FormMethod.Post))
