@@ -18,7 +18,7 @@ namespace project.Controllers
         public ActionResult Index(int accountBookID)
         {
             var arg = new TransactionList { AccountBookId = accountBookID };
-            var transactions = _service.GetAccountBookData(arg);
+            var transactions = _service.GetTransactionList(arg);
 
             // 轉換為 Budget 列表
             var budgets = transactions.Select(t => new Budget

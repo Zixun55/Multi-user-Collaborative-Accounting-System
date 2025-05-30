@@ -79,7 +79,7 @@ namespace TestAccountingSystem
 
             var service = new AccountBookService(mockDbHelper.Object);
             var input = new TransactionList { AccountBookId = 1 };
-            var result = service.GetAccountBookData(input);
+            var result = service.GetTransactionList(input);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count);
@@ -111,7 +111,7 @@ namespace TestAccountingSystem
 
             var service = new AccountBookService(mockDbHelper.Object);
             var input = new TransactionList { AccountBookId = 1 };
-            var result = service.GetAccountBookData(input);
+            var result = service.GetTransactionList(input);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count);

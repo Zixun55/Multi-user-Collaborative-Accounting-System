@@ -42,7 +42,7 @@ namespace project.Controllers
         public ActionResult AccountBookData(int id)
         {
             var searchArg = new TransactionList { AccountBookId = id };
-            List<TransactionList> accountBookDataResult = _service.GetAccountBookData(searchArg);
+            List<TransactionList> accountBookDataResult = _service.GetTransactionList(searchArg);
             ViewBag.AccountBookId = id;
 
             return View(accountBookDataResult);
@@ -179,7 +179,7 @@ namespace project.Controllers
         public IActionResult ShowReport(int accountBookId)
         {
             var searchArg = new TransactionList { AccountBookId = accountBookId };
-            List<TransactionList> transactions = _service.GetAccountBookData(searchArg);
+            List<TransactionList> transactions = _service.GetTransactionList(searchArg);
             ViewBag.AccountBookId = accountBookId;
             return View(transactions);
         }
@@ -206,6 +206,49 @@ namespace project.Controllers
             {
                 return StatusCode(500, new { error = "匯率抓取失敗", message = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// 獲得帳本資料(帳本編輯頁面)
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult AccountBookUpdate(int id)
+        {
+            var searchArg = new AccountBookList { AccountBookId = id };
+            AccountBookList accountBookDataResult = _service.GetAccountBookData(searchArg);
+
+            return View(accountBookDataResult);
+        }
+
+        /// <summary>
+        /// 儲存修改的帳本資料
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AccountBookUpdateSave(AccountBookList data)
+        {
+            if (ModelState.IsValid)
+            {
+                var emailList = data.Owners?.Split(',')?.Select(e => e.Trim()).Where(e => !string.IsNullOrEmpty(e)).ToList() ?? new List<string>();
+
+                // 檢查 email 是否存在
+                var nonExistEmails = _service.GetNonExistentUserEmails(emailList);
+                if (nonExistEmails.Any())
+                {
+                    ModelState.AddModelError("Owners", "無此使用者：" + string.Join(", ", nonExistEmails));
+                    return View("AccountBookUpdate", data);
+                }
+
+                // 取得對應 user_id 並存入
+                var userIds = _service.GetUserIdsByEmails(emailList);
+                data.Owners = string.Join(",", userIds);
+
+                _service.UpdateAccountBookData(data);
+                return RedirectToAction("AccountBookList", "AccountingSystem", new { id = data.AccountBookId });
+            }
+            return View("AccountBookUpdate", data);
         }
     }
 }
