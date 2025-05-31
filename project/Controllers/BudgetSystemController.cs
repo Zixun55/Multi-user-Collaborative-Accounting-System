@@ -225,26 +225,85 @@ namespace project.Controllers
             };
         }
 
+        //public IActionResult ShowReport(int accountBookID, int budgetID)
+        //{
+        //    var searchArg = new TransactionList { AccountBookId = accountBookID };
+        //    List<TransactionList> transactions = _service.GetAccountBookData(searchArg);
+
+        //    // 計算總預算（假設收入為正數）
+        //    decimal totalIncome = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount);
+        //    decimal totalExpenses = transactions.Where(t => t.Amount < 0).Sum(t => -t.Amount);
+        //    decimal remainingBudget = totalIncome - totalExpenses;
+
+        //    ViewBag.AccountBookId = accountBookID;
+        //    ViewBag.TotalBudget = totalIncome;
+        //    ViewBag.TotalSpent = totalExpenses;
+        //    ViewBag.RemainingBudget = remainingBudget;
+
+        //    ViewBag.accountBookID = accountBookID;
+        //    ViewBag.budgetID = budgetID;
+
+        //    return View(transactions);
+        //}
         public IActionResult ShowReport(int accountBookID, int budgetID)
         {
-            var searchArg = new TransactionList { AccountBookId = accountBookID };
-            List<TransactionList> transactions = _service.GetAccountBookData(searchArg);
+            var budget = _service.GetBudgetById(budgetID);
+            if (budget == null) return NotFound();
 
-            // 計算總預算（假設收入為正數）
-            decimal totalIncome = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount);
-            decimal totalExpenses = transactions.Where(t => t.Amount < 0).Sum(t => -t.Amount);
-            decimal remainingBudget = totalIncome - totalExpenses;
+            // 確保 budget.Amount 不是 null
+            decimal totalBudget = budget.Amount ?? 0m;
+            decimal totalExpenses = _service.GetIncludedExpenseSum(accountBookID);
+
+            // 修正剩餘預算計算邏輯
+            decimal remainingBudget = Math.Max(0, totalBudget - totalExpenses);
+            decimal overBudget = totalExpenses > totalBudget ? totalExpenses - totalBudget : 0;
+
+            // 計算使用百分比
+            decimal usagePercentage = totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
+
+            // 判斷預算狀態
+            string budgetStatus = GetBudgetStatus(totalBudget, totalExpenses, usagePercentage);
 
             ViewBag.AccountBookId = accountBookID;
-            ViewBag.TotalBudget = totalIncome;
+            ViewBag.TotalBudget = totalBudget;
             ViewBag.TotalSpent = totalExpenses;
             ViewBag.RemainingBudget = remainingBudget;
-
+            ViewBag.OverBudget = overBudget;
+            ViewBag.UsagePercentage = usagePercentage;
+            ViewBag.BudgetStatus = budgetStatus;
             ViewBag.accountBookID = accountBookID;
             ViewBag.budgetID = budgetID;
 
-            return View(transactions);
+            var includedTransactions = _service.GetTransactionsIncludedInBudget(accountBookID);
+            return View(includedTransactions);
         }
+
+        // 輔助方法：判斷預算狀態
+        private string GetBudgetStatus(decimal totalBudget, decimal totalExpenses, decimal usagePercentage)
+        {
+            if (totalBudget == 0)
+            {
+                return totalExpenses > 0 ? "無預算但有支出" : "無預算";
+            }
+
+            if (totalExpenses >= totalBudget)
+            {
+                return "預算使用完畢";
+            }
+            else if (usagePercentage >= 90)
+            {
+                return "預算即將用完";
+            }
+            else if (usagePercentage >= 75)
+            {
+                return "預算使用良好";
+            }
+            else
+            {
+                return "預算充足";
+            }
+        }
+
 
     }
 }

@@ -419,6 +419,35 @@ namespace project.Models.Services
             _dbHelper.ExecuteNonQuery(sql, parameters);
         }
 
+        public decimal GetIncludedExpenseSum(int accountBookId)
+        {
+            string sql = @"SELECT COALESCE(SUM(AMOUNT), 0)
+                   FROM TRANSACTION
+                   WHERE ACCOUNT_BOOK_ID = @AccountBookId
+                     AND INCLUDE_IN_BUDGET = TRUE";
+
+            var parameters = new Dictionary<string, object>
+    {
+        { "@AccountBookId", accountBookId }
+    };
+
+            object result = _dbHelper.ExecuteScalar(sql, parameters);
+
+            // 安全地處理 null 值
+            if (result == null || result == DBNull.Value)
+            {
+                return 0m;
+            }
+
+            // 使用 decimal.TryParse 更安全
+            if (decimal.TryParse(result.ToString(), out decimal amount))
+            {
+                return amount;
+            }
+
+            return 0m;
+        }
+
 
     }
 }

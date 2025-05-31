@@ -1,9 +1,13 @@
-﻿@model List<TransactionList>
+﻿@model List<project.Models.TransactionData>
 @{
     ViewData["Title"] = "財務報表";
     decimal totalBudget = ViewBag.TotalBudget;
     decimal totalSpent = ViewBag.TotalSpent;
     decimal remainingBudget = ViewBag.RemainingBudget;
+    decimal overBudget = ViewBag.OverBudget;
+    decimal usagePercentage = ViewBag.UsagePercentage;
+    string budgetStatus = ViewBag.BudgetStatus;
+    var culture = System.Globalization.CultureInfo.InvariantCulture;
 }
 
 <p>
@@ -14,17 +18,38 @@
             new { budgetID = ViewBag.budgetID, accountBookID = ViewBag.accountBookID },
             new { @class = "btn btn-primary" }
             )
-
 </p>
+
 <!-- 引入 Chart.js 庫 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- 添加圓餅圖容器 -->
 <div class="row mt-4">
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 <h4>預算使用情況</h4>
+                <!-- 新增預算狀態顯示 -->
+                <div class="budget-status mb-2">
+                    <span class="badge @GetStatusBadgeClass(budgetStatus)" style="font-size: 14px;">
+                        @budgetStatus
+                    </span>
+                </div>
+                <div class="budget-summary">
+                    <p class="mb-1">
+                        <strong>總預算：</strong>@totalBudget.ToString("C", culture) |
+                        <strong>已用：</strong>@totalSpent.ToString("C", culture) |
+                        <strong>剩餘：</strong>@remainingBudget.ToString("C", culture)
+                    </p>
+                    @if (overBudget > 0)
+                    {
+                        <p class="mb-1 text-danger">
+                            <strong>超支：</strong>@overBudget.ToString("C", culture)
+                        </p>
+                    }
+                    <p class="mb-0">
+                        <strong>使用率：</strong>@usagePercentage.ToString("F1")%
+                    </p>
+                </div>
             </div>
             <div class="card-body">
                 <canvas id="budgetPieChart"></canvas>
@@ -33,42 +58,97 @@
     </div>
 </div>
 
-<!-- 初始化圓餅圖 -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var ctx = document.getElementById('budgetPieChart').getContext('2d');
 
-        var data = {
-            labels: ['已用預算', '剩餘預算'],
-            datasets: [{
-                data: [@totalSpent, @remainingBudget],
-                backgroundColor: ['#FF6384', '#36A2EB'],
-                hoverBackgroundColor: ['#FF6384', '#36A2EB']
-            }]
-        };
+        var totalBudget = parseFloat('@totalBudget.ToString(culture)');
+        var totalSpent = parseFloat('@totalSpent.ToString(culture)');
+        var remainingBudget = parseFloat('@remainingBudget.ToString(culture)');
+        var overBudget = parseFloat('@overBudget.ToString(culture)');
+
+        var data, labels;
+
+        // 根據是否超支調整圓餅圖資料
+        if (overBudget > 0) {
+            // 超支情況：顯示預算內支出和超支部分
+            labels = ['預算內支出', '超支部分'];
+            data = {
+                labels: labels,
+                datasets: [{
+                    data: [totalBudget, overBudget],
+                    backgroundColor: ['#FF6384', '#DC3545'],
+                    hoverBackgroundColor: ['#FF6384', '#DC3545'],
+                    borderWidth: 1
+                }]
+            };
+        } else {
+            // 正常情況：顯示已用和剩餘
+            labels = ['已用預算', '剩餘預算'];
+            data = {
+                labels: labels,
+                datasets: [{
+                    data: [totalSpent, remainingBudget],
+                    backgroundColor: ['#FF6384', '#36A2EB'],
+                    hoverBackgroundColor: ['#FF6384', '#36A2EB'],
+                    borderWidth: 1
+                }]
+            };
+        }
 
         var options = {
             responsive: true,
             maintainAspectRatio: false,
-            tooltips: {
-                callbacks: {
-                    label: function(tooltipItem, data) {
-                        var dataset = data.datasets[tooltipItem.datasetIndex];
-                        var total = dataset.data.reduce(function(previousValue, currentValue) {
-                            return previousValue + currentValue;
-                        });
-                        var currentValue = dataset.data[tooltipItem.index];
-                        var percentage = Math.floor(((currentValue/total) * 100)+0.5);
-                        return data.labels[tooltipItem.index] + ': ' + currentValue + ' (' + percentage + '%)';
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var value = context.raw || 0;
+                            var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            var percentage = total === 0 ? 0 : Math.round((value / total) * 100);
+                            return `${label}: NT$${value.toFixed(2)} (${percentage}%)`;
+                        }
                     }
                 }
             }
         };
 
-        var myPieChart = new Chart(ctx, {
+        new Chart(ctx, {
             type: 'pie',
             data: data,
             options: options
         });
     });
 </script>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "預算使用完畢" => "badge-danger text-dark",
+            "預算即將用完" => "badge-warning text-dark", // 加深字體
+            "預算使用良好" => "badge-info text-dark",
+            "預算充足" => "badge-success text-dark", // 改用深綠色
+            "無預算但有支出" => "badge-dark",
+            "無預算" => "badge-secondary text-dark", // 確保白字
+            _ => "badge-primary"
+        };
+    }
+}
+
+
+<style>
+    .budget-status .badge {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    .budget-summary {
+        font-size: 14px;
+    }
+</style>
