@@ -176,13 +176,64 @@ namespace project.Controllers
         /// </summary>
         /// <param name="accountBookId"></param>
         /// <returns></returns>
-        public IActionResult ShowReport(int accountBookId)
+        public IActionResult ShowReport(int accountBookID, int budgetID)
         {
-            var searchArg = new TransactionList { AccountBookId = accountBookId };
-            List<TransactionList> transactions = _service.GetTransactionList(searchArg);
-            ViewBag.AccountBookId = accountBookId;
-            return View(transactions);
+            var budget = _service.GetBudgetById(budgetID);
+            if (budget == null) return NotFound();
+
+            decimal totalBudget = budget.Amount;
+            decimal totalExpenses = _service.GetIncludedExpenseSum(accountBookID);
+
+            // 修正剩餘預算計算邏輯
+            decimal remainingBudget = Math.Max(0, totalBudget - totalExpenses);
+            decimal overBudget = totalExpenses > totalBudget ? totalExpenses - totalBudget : 0;
+
+            // 計算使用百分比
+            decimal usagePercentage = totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
+
+            // 判斷預算狀態
+            string budgetStatus = GetBudgetStatus(totalBudget, totalExpenses, usagePercentage);
+
+            ViewBag.AccountBookId = accountBookID;
+            ViewBag.TotalBudget = totalBudget;
+            ViewBag.TotalSpent = totalExpenses;
+            ViewBag.RemainingBudget = remainingBudget;
+            ViewBag.OverBudget = overBudget;
+            ViewBag.UsagePercentage = usagePercentage;
+            ViewBag.BudgetStatus = budgetStatus;
+            ViewBag.accountBookID = accountBookID;
+            ViewBag.budgetID = budgetID;
+
+            var includedTransactions = _service.GetTransactionsIncludedInBudget(accountBookID);
+            return View(includedTransactions);
         }
+
+        // 新增輔助方法：判斷預算狀態
+        private string GetBudgetStatus(decimal totalBudget, decimal totalExpenses, decimal usagePercentage)
+        {
+            if (totalBudget == 0)
+            {
+                return totalExpenses > 0 ? "無預算但有支出" : "無預算";
+            }
+
+            if (totalExpenses >= totalBudget)
+            {
+                return "預算使用完畢";
+            }
+            else if (usagePercentage >= 90)
+            {
+                return "預算即將用完";
+            }
+            else if (usagePercentage >= 75)
+            {
+                return "預算使用良好";
+            }
+            else
+            {
+                return "預算充足";
+            }
+        }
+
 
 
         /// <summary>

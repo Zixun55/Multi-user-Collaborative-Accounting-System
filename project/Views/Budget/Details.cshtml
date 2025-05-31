@@ -1,32 +1,324 @@
-﻿@model project.Models.Budget
-
+﻿@model project.Models.BudgetDetailsViewModel
 @{
-    ViewBag.Title = "預算詳情";
+    ViewData["Title"] = "預算詳情與交易紀錄";
+    var culture = System.Globalization.CultureInfo.InvariantCulture;
 }
 
-<h2>預算詳情</h2>
+<div class="container mt-4">
+    <!-- 操作按鈕區 -->
+    <div class="d-flex justify-content-between mb-4">
+        <h2 class="mb-0">預算詳情與交易紀錄</h2>
+        <div>
+            @Html.ActionLink("返回預算列表", "Index", "Budget",
+                     new { accountBookID = Model.AccountBookID },
+                     new { @class = "btn btn-outline-secondary" })
+        </div>
+    </div>
 
-<div>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>預算 ID:</dt>
-        <dd>@Model.BudgetID</dd>
+    <!-- 預算摘要卡片 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>預算使用分析</h4>
+        </div>
+        <div class="card-body">
+            <!-- 狀態徽章與摘要 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <span id="budgetStatusBadge" class="badge bg-success fs-6 p-2">
+                        @Model.BudgetStatus
+                    </span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-1">
+                        <span class="text-muted">總預算：</span>
+                        <span id="totalBudgetDisplay" class="fw-bold">@Model.TotalBudget.ToString("C", culture)</span>
+                    </p>
+                    <p class="mb-1">
+                        <span class="text-muted">已用金額：</span>
+                        <span id="totalSpentDisplay" class="fw-bold">@Model.TotalSpent.ToString("C", culture)</span>
+                    </p>
+                    <p class="mb-1">
+                        <span class="text-muted">剩餘預算：</span>
+                        <span id="remainingBudgetDisplay" class="fw-bold">@Model.RemainingBudget.ToString("C", culture)</span>
+                    </p>
+                    <p class="mb-1">
+                        <span class="text-muted">使用率：</span>
+                        <span id="usagePercentageDisplay" class="fw-bold">@Model.UsagePercentage.ToString("F1")%</span>
+                    </p>
+                </div>
+            </div>
 
-        <dt>類別:</dt>
-        <dd>@Model.Category</dd>
+            <!-- 圖表容器 -->
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="budgetPieChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-        <dt>金額:</dt>
-        <dd>@Model.Amount</dd>
+    <!-- 過濾控制項 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>資料過濾</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">分類</label>
+                    <select id="categoryFilter" class="form-select">
+                        <option value="">全部</option>
+                        <option value="食品">食品</option>
+                        <option value="交通">交通</option>
+                        <option value="住宿">住宿</option>
+                        <option value="娛樂">娛樂</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">起始日期</label>
+                    <input type="date"
+                           id="startDate"
+                           class="form-control"
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">結束日期</label>
+                    <input type="date"
+                           id="endDate"
+                           class="form-control"
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")">
+                </div>
 
-        <dt>週期 (月):</dt>
-        <dd>@Model.Period</dd>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" id="applyFilter" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> 過濾
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <dt>賬簿:</dt>
-        <dd>@Model.AccountBookName</dd>
-    </dl>
+    <!-- 交易明細表格 -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>交易明細</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>交易日期</th>
+                            <th>類別</th>
+                            <th class="text-end">金額</th>
+                            <th>描述</th>
+                            <th>狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody">
+                        @foreach (var item in Model.IncludedTransactions)
+                        {
+                            <tr>
+                                <td>@item.Date.ToString("yyyy/MM/dd")</td>
+                                <td><span class="badge bg-info">@item.Category</span></td>
+                                <td class="text-end @(item.Amount < 0 ? "text-danger" : "text-success")">
+                                    @($"{item.Currency} {Math.Abs(item.Amount):N2}")
+                                </td>
+                                <td class="text-truncate" style="max-width: 200px;">@item.Description</td>
+                                <td>
+                                    @if (item.IncludeInBudget)
+                                    {
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-times-circle text-secondary"></i>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<p>
-    @Html.ActionLink("編輯", "Edit", new { budgetID = Model.BudgetID, accountBookId = ViewBag.AccountBookId }, new { @class = "btn btn-primary" })
-    @Html.ActionLink("返回列表", "Index", "Budget", new { accountBookId = ViewBag.AccountBookId})
-</p>
+<!-- 載入指示器 -->
+<div id="loadingIndicator" class="d-none">
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">載入中...</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let budgetChart = null;
+        const budgetID = @Model.BudgetID;
+        const accountBookID = @Model.AccountBookID;
+
+        // 初始化圓餅圖
+        function initChart(data) {
+    const ctx = document.getElementById('budgetPieChart').getContext('2d');
+
+    if (budgetChart) {
+        budgetChart.destroy();
+    }
+
+    let chartData, labels, backgroundColors, hoverColors;
+    if (data.overBudget > 0) {
+        labels = ['預算內支出', '超支部分'];
+        chartData = [data.totalBudget, data.overBudget];
+        backgroundColors = ['#36A2EB', '#FFA500'];      // 藍色、橘色
+        hoverColors = ['#36A2EB', '#FF7F50'];           // 藍色、珊瑚橘
+    } else {
+        labels = ['已用預算', '剩餘預算'];
+        chartData = [data.totalSpent, data.remainingBudget];
+        backgroundColors = ['#FF6384', '#36A2EB'];      // 粉紅、藍
+        hoverColors = ['#FF6384', '#36A2EB'];
+    }
+
+    budgetChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: backgroundColors,
+                hoverBackgroundColor: hoverColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total === 0 ? 0 : Math.round((value / total) * 100);
+                            return `${label}: NT$${value.toFixed(2)} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+        // 更新摘要資訊
+        function updateSummary(data) {
+            document.getElementById('totalBudgetDisplay').textContent = `NT$${data.totalBudget.toFixed(2)}`;
+            document.getElementById('totalSpentDisplay').textContent = `NT$${data.totalSpent.toFixed(2)}`;
+            document.getElementById('remainingBudgetDisplay').textContent = `NT$${data.remainingBudget.toFixed(2)}`;
+            document.getElementById('usagePercentageDisplay').textContent = `${data.usagePercentage.toFixed(1)}%`;
+
+            const statusBadge = document.getElementById('budgetStatusBadge');
+            statusBadge.textContent = data.budgetStatus;
+            statusBadge.className = `badge fs-6 p-2 ${getBadgeClass(data.budgetStatus)}`;
+        }
+
+        // 取得狀態徽章樣式
+        function getBadgeClass(status) {
+            switch (status) {
+                case '預算使用完畢': return 'bg-danger';
+                case '預算即將用完': return 'bg-warning';
+                case '預算使用良好': return 'bg-info';
+                case '預算充足': return 'bg-success';
+                case '無預算但有支出': return 'bg-dark';
+                case '無預算': return 'bg-secondary';
+                default: return 'bg-primary';
+            }
+        }
+
+        // 更新交易表格
+        function updateTransactionTable(transactions) {
+            const tbody = document.getElementById('transactionTableBody');
+            tbody.innerHTML = '';
+
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaction.date}</td>
+                    <td><span class="badge bg-info">${transaction.category}</span></td>
+                    <td class="text-end ${transaction.amount < 0 ? 'text-danger' : 'text-success'}">
+                        ${transaction.currency} ${Math.abs(transaction.amount).toFixed(2)}
+                    </td>
+                    <td class="text-truncate" style="max-width: 200px;">${transaction.description}</td>
+                    <td>
+                        ${transaction.includeInBudget
+                            ? '<i class="fas fa-check-circle text-success"></i>'
+                            : '<i class="fas fa-times-circle text-secondary"></i>'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // AJAX 過濾函數
+        function applyFilters() {
+            const category = document.getElementById('categoryFilter').value;
+            const startDate = document.getElementById('startDate').value; // 已經是 yyyy-MM-dd 格式
+            const endDate = document.getElementById('endDate').value;     // 已經是 yyyy-MM-dd 格式
+
+            // 顯示載入指示器
+            document.getElementById('loadingIndicator').classList.remove('d-none');
+
+            $.ajax({
+                url: '@Url.Action("GetFilteredTransactions", "Budget")',
+                type: 'POST',
+                data: {
+                    budgetID: budgetID,
+                    accountBookID: accountBookID,
+                    category: category,
+                    start: startDate,  // HTML5 date input 自動提供正確格式
+                    end: endDate
+                },
+                success: function(response) {
+                    if (response.success) {
+                        initChart(response);
+                        updateSummary(response);
+                        updateTransactionTable(response.transactions);
+                    } else {
+                        alert('載入資料失敗，請稍後再試');
+                    }
+                },
+                error: function() {
+                    alert('發生錯誤，請稍後再試');
+                },
+                complete: function() {
+                    document.getElementById('loadingIndicator').classList.add('d-none');
+                }
+            });
+        }
+
+
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化圓餅圖
+            const initialData = {
+                totalBudget: @Model.TotalBudget,
+                totalSpent: @Model.TotalSpent,
+                remainingBudget: @Model.RemainingBudget,
+                overBudget: @Model.OverBudget
+            };
+            initChart(initialData);
+
+            // 頁面一載入就自動執行過濾
+            applyFilters();
+
+            // 綁定過濾按鈕事件
+            document.getElementById('applyFilter').addEventListener('click', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+        });
+
+    </script>
+}

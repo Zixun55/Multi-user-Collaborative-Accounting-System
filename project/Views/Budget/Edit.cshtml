@@ -1,4 +1,4 @@
-﻿@model Budget
+﻿@model project.Models.Budget
 
 @{
     ViewBag.Title = "編輯預算";
@@ -17,10 +17,10 @@
         @Html.HiddenFor(model => model.AccountBookID)
 
         <div class="form-group">
-            @Html.LabelFor(model => model.Category, "類別", new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.BudgetName, "名稱", new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownListFor(model => model.Category, ViewBag.Categories as List<SelectListItem>, new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.Category, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.BudgetName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.BudgetName, "", new { @class = "text-danger" })
             </div>
         </div>
 
@@ -33,10 +33,34 @@
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.Period, "週期 (月)", new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.StartDate, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.Period, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Period, "", new { @class = "text-danger" })
+                @Html.TextBox("Date", Model.StartDate.ToString("yyyy-MM-ddTHH:mm"), new { @class = "form-control", type = "datetime-local" })
+                @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.EndDate, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBox("Date", Model.EndDate.ToString("yyyy-MM-ddTHH:mm"), new { @class = "form-control", type = "datetime-local" })
+                @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Currency, "幣別", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Currency, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, "描述", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Description, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
             </div>
         </div>
 
