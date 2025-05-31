@@ -17,4 +17,18 @@
         public int AccountBookID { get; set; }
         public string AccountBookName { get; set; }
     }
+
+    public class BudgetDetailsViewModel
+    {
+        public int BudgetID { get; set; }
+        public int AccountBookID { get; set; }
+        public decimal TotalBudget { get; set; }
+        public decimal TotalSpent { get; set; }
+        public decimal RemainingBudget { get; set; }
+        public decimal OverBudget { get; set; }
+        public decimal UsagePercentage { get; set; }
+        public string BudgetStatus { get; set; }
+        public List<TransactionData> IncludedTransactions { get; set; }
+    }
+
 }

@@ -1,15 +1,163 @@
-﻿@model List<project.Models.TransactionData>
+﻿@* @model List<project.Models.TransactionData> *@
 
+@* @{ *@
+@* 	ViewBag.Title = "預算相關交易紀錄"; *@
+@* } *@
+
+@* <h2>預算相關交易紀錄（僅顯示納入預算計算者）</h2> *@
+
+@* <p> *@
+@* 	@Html.ActionLink("顯示預算圖表", "ShowReport", "Budget", new { budgetID = ViewBag.budgetID, accountBookID = ViewBag.accountBookID }, new { @class = "btn btn-primary" }) *@
+@* 	@Html.ActionLink("返回預算列表", "Index", "Budget", new { accountBookID = ViewBag.accountBookID }, new { @class = "btn btn-primary" }) *@
+@* </p> *@
+@* <table class="table table-bordered table-striped"> *@
+@* 	<thead> *@
+@* 		<tr> *@
+@* 			<th>交易編號</th> *@
+@* 			<th>日期</th> *@
+@* 			<th>類別</th> *@
+@* 			<th>描述</th> *@
+@* 			<th>金額</th> *@
+@* 			<th>納入預算</th> *@
+@* 		</tr> *@
+@* 	</thead> *@
+@* 	<tbody> *@
+@* 		@foreach (var item in Model) *@
+@* 		{ *@
+@* 			<tr> *@
+@* 				<td>@item.TransactionId</td> *@
+@* 				<td>@item.Date.ToString("yyyy-MM-dd")</td> *@
+@* 				<td>@item.Category</td> *@
+@* 				<td>@item.Description</td> *@
+@* 				<td>@($"{item.Currency} {item.Amount:N2}")</td> *@
+@* 				<td>@(item.IncludeInBudget ? "是" : "否")</td> *@
+@* 			</tr> *@
+@* 		} *@
+@* 	</tbody> *@
+@* </table> *@
+@model project.Models.BudgetDetailsViewModel
 @{
-    ViewBag.Title = "預算相關交易紀錄";
+    ViewData["Title"] = "預算詳情與交易紀錄";
+    var culture = System.Globalization.CultureInfo.InvariantCulture;
 }
 
-<h2>預算相關交易紀錄（僅顯示納入預算計算者）</h2>
+<h2>預算詳情與交易紀錄</h2>
 
-<p>
-    @Html.ActionLink("顯示預算圖表", "ShowReport", "Budget", new { budgetID = ViewBag.budgetID, accountBookID = ViewBag.accountBookID }, new { @class = "btn btn-primary" })
-    @Html.ActionLink("返回預算列表", "Index", "Budget", new { accountBookID = ViewBag.accountBookID }, new { @class = "btn btn-primary" })
-</p>
+<!-- 預算摘要與圖表區塊 -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>預算使用情況</h4>
+                <div class="budget-status mb-2">
+                    <span class="badge @GetStatusBadgeClass(Model.BudgetStatus)" style="font-size: 14px;">
+                        @Model.BudgetStatus
+                    </span>
+                </div>
+                <div class="budget-summary">
+                    <p class="mb-1">
+                        <strong>總預算：</strong>@Model.TotalBudget.ToString("C", culture) |
+                        <strong>已用：</strong>@Model.TotalSpent.ToString("C", culture) |
+                        <strong>剩餘：</strong>@Model.RemainingBudget.ToString("C", culture)
+                    </p>
+                    @if (Model.OverBudget > 0)
+                    {
+                        <p class="mb-1 text-danger">
+                            <strong>超支：</strong>@Model.OverBudget.ToString("C", culture)
+                        </p>
+                    }
+                    <p class="mb-0">
+                        <strong>使用率：</strong>@Model.UsagePercentage.ToString("F1")%
+                    </p>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="budgetPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js 圓餅圖 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var ctx = document.getElementById('budgetPieChart').getContext('2d');
+        var totalBudget = @Model.TotalBudget;
+        var totalSpent = @Model.TotalSpent;
+        var remainingBudget = @Model.RemainingBudget;
+        var overBudget = @Model.OverBudget;
+
+        var data, labels;
+        if (overBudget > 0) {
+            labels = ['預算內支出', '超支部分'];
+            data = {
+                labels: labels,
+                datasets: [{
+                    data: [totalBudget, overBudget],
+                    backgroundColor: ['#FF6384', '#DC3545'],
+                    hoverBackgroundColor: ['#FF6384', '#DC3545'],
+                    borderWidth: 1
+                }]
+            };
+        } else {
+            labels = ['已用預算', '剩餘預算'];
+            data = {
+                labels: labels,
+                datasets: [{
+                    data: [totalSpent, remainingBudget],
+                    backgroundColor: ['#FF6384', '#36A2EB'],
+                    hoverBackgroundColor: ['#FF6384', '#36A2EB'],
+                    borderWidth: 1
+                }]
+            };
+        }
+
+        var options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var value = context.raw || 0;
+                            var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            var percentage = total === 0 ? 0 : Math.round((value / total) * 100);
+                            return `${label}: NT$${value.toFixed(2)} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        };
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: data,
+            options: options
+        });
+    });
+</script>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "預算使用完畢" => "badge-danger text-dark",
+            "預算即將用完" => "badge-warning text-dark",
+            "預算使用良好" => "badge-info text-dark",
+            "預算充足" => "badge-success text-dark",
+            "無預算但有支出" => "badge-dark",
+            "無預算" => "badge-secondary text-dark",
+            _ => "badge-primary"
+        };
+    }
+}
+
+<!-- 交易明細表 -->
+<h3 class="mt-4">預算相關交易紀錄（僅顯示納入預算計算者）</h3>
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -22,7 +170,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.IncludedTransactions)
         {
             <tr>
                 <td>@item.TransactionId</td>
