@@ -378,39 +378,6 @@ namespace project.Models.Services
             return result;
         }
 
-
-        //    public List<TransactionData> GetTransactionsIncludedInBudget(int accountBookId)
-        //    {
-        //        string sql = @"SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, 
-        //                      DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY, 
-        //                      INCLUDE_IN_BUDGET
-        //               FROM TRANSACTION 
-        //               WHERE ACCOUNT_BOOK_ID = @AccountBookId 
-        //                 AND INCLUDE_IN_BUDGET = TRUE"; 
-
-        //        var parameters = new Dictionary<string, object>
-        //{
-        //    { "@AccountBookId", accountBookId }
-        //};
-
-        //        DataTable dt = _dbHelper.ExecuteQuery(sql, parameters);
-        //        List<TransactionData> result = new();
-        //        foreach (DataRow row in dt.Rows)
-        //        {
-        //            result.Add(new TransactionData
-        //            {
-        //                TransactionId = Convert.ToInt32(row["TRANSACTION_ID"]),
-        //                AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]),
-        //                Date = Convert.ToDateTime(row["DATE"]),
-        //                Amount = Convert.ToInt32(row["AMOUNT"]),
-        //                Description = row["DESCRIPTION"].ToString(),
-        //                Currency = row["TRANSACTION_CURRENCY"].ToString(),
-        //                Category = row["CATEGORY"].ToString(),
-        //                IncludeInBudget = Convert.ToBoolean(row["INCLUDE_IN_BUDGET"])
-        //            });
-        //        }
-        //        return result;
-        //    }
         /// <summary>
         /// 根據 BudgetID 取得單筆預算資料
         /// </summary>

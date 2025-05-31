@@ -78,14 +78,14 @@
                     <input type="date"
                            id="startDate"
                            class="form-control"
-                           value="@Model.StartDate.ToString("yyyy-MM-dd")"
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">結束日期</label>
                     <input type="date"
                            id="endDate"
                            class="form-control"
-                           value="@Model.EndDate.ToString("yyyy-MM-dd")"
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")">
                 </div>
 
                 <div class="col-md-2">
@@ -162,53 +162,57 @@
 
         // 初始化圓餅圖
         function initChart(data) {
-            const ctx = document.getElementById('budgetPieChart').getContext('2d');
+    const ctx = document.getElementById('budgetPieChart').getContext('2d');
 
-            // 如果已有圖表，先銷毀
-            if (budgetChart) {
-                budgetChart.destroy();
-            }
+    if (budgetChart) {
+        budgetChart.destroy();
+    }
 
-            let chartData, labels;
-            if (data.overBudget > 0) {
-                labels = ['預算內支出', '超支部分'];
-                chartData = [data.totalBudget, data.overBudget];
-            } else {
-                labels = ['已用預算', '剩餘預算'];
-                chartData = [data.totalSpent, data.remainingBudget];
-            }
+    let chartData, labels, backgroundColors, hoverColors;
+    if (data.overBudget > 0) {
+        labels = ['預算內支出', '超支部分'];
+        chartData = [data.totalBudget, data.overBudget];
+        backgroundColors = ['#36A2EB', '#FFA500'];      // 藍色、橘色
+        hoverColors = ['#36A2EB', '#FF7F50'];           // 藍色、珊瑚橘
+    } else {
+        labels = ['已用預算', '剩餘預算'];
+        chartData = [data.totalSpent, data.remainingBudget];
+        backgroundColors = ['#FF6384', '#36A2EB'];      // 粉紅、藍
+        hoverColors = ['#FF6384', '#36A2EB'];
+    }
 
-            budgetChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: chartData,
-                        backgroundColor: ['#FF6384', '#36A2EB'],
-                        hoverBackgroundColor: ['#FF6384', '#36A2EB'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total === 0 ? 0 : Math.round((value / total) * 100);
-                                    return `${label}: NT$${value.toFixed(2)} (${percentage}%)`;
-                                }
-                            }
+    budgetChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: backgroundColors,
+                hoverBackgroundColor: hoverColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total === 0 ? 0 : Math.round((value / total) * 100);
+                            return `${label}: NT$${value.toFixed(2)} (${percentage}%)`;
                         }
                     }
                 }
-            });
+            }
         }
+    });
+}
+
 
         // 更新摘要資訊
         function updateSummary(data) {
