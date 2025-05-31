@@ -143,36 +143,20 @@ namespace project.Controllers
             return View("Create", budget);
         }
 
-
-        // 顯示編輯預算表單
         public ActionResult Edit(int budgetID, int accountBookID)
         {
-            var transaction = _service.GetTransactionData(new TransactionData
-            {
-                TransactionId = budgetID,
-                AccountBookId = accountBookID
-            });
-
-            if (transaction == null)
-            {
-                return NotFound();
-            }
+            var budget = _service.GetBudgetById(budgetID); // 這裡要回傳完整的 Budget 或 BudgetList
+            if (budget == null) return NotFound();
 
             ViewBag.Categories = GetCategoryList();
             ViewBag.AccountBookId = accountBookID;
-
-            return View(new BudgetList
-            {
-                BudgetID = transaction.TransactionId,
-                Amount = transaction.Amount,
-                AccountBookID = accountBookID
-            });
+            return View(budget); // 這裡 budget 物件要有所有欄位
         }
 
         // 處理更新預算請求
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult UpdateBudget(int budgetID, BudgetList budget)
+        public ActionResult UpdateBudget(int budgetID, Budget budget)
         {
             if (!ModelState.IsValid)
             {
@@ -181,16 +165,7 @@ namespace project.Controllers
                 return View("Edit", budget); // 明確指定返回 Edit 視圖
             }
 
-            var transactionData = new TransactionData
-            {
-                TransactionId = budgetID,
-                AccountBookId = budget.AccountBookID,
-                Amount = budget.Amount,
-                Date = DateTime.Now,
-                Currency = "TWD"
-            };
-
-            _service.UpdateTransactionData(transactionData);
+            _service.UpdateBudget(budget);
 
             return RedirectToAction("Index", new { accountBookID = budget.AccountBookID });
         }

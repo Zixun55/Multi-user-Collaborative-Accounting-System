@@ -261,7 +261,7 @@ namespace project.Models.Services
         /// <param name="accountBookID"></param>
         public List<BudgetList> GetBudgetsForAccountBook(int accountBookId)
         {
-            string sql = @"SELECT BudgetID, accountbookid, Title, Amount, Currency, StartDate, EndDate, Description, CreatedAt
+            string sql = @"SELECT BudgetID, accountbookid, BudgetName, Amount, Currency, StartDate, EndDate, Description, CreatedAt
                    FROM Budget
                    WHERE accountbookid = @accountbookid";
             var parameters = new Dictionary<string, object>
@@ -276,7 +276,7 @@ namespace project.Models.Services
                 {
                     BudgetID = Convert.ToInt32(row["BudgetID"]),
                     AccountBookID = row.Table.Columns.Contains("accountbookid") ? Convert.ToInt32(row["accountbookid"]) : 0,
-                    AccountBookName = row.Table.Columns.Contains("Title") ? row["Title"].ToString() : null,
+                    AccountBookName = row.Table.Columns.Contains("BudgetName") ? row["BudgetName"].ToString() : null,
                     Amount = Convert.ToInt32(row["Amount"]),
                     Currency = row.Table.Columns.Contains("Currency") ? row["Currency"].ToString() : null,
                     StartDate = row.Table.Columns.Contains("StartDate") && !row.IsNull("StartDate") // 使用 row.IsNull() 更簡潔
@@ -301,13 +301,13 @@ namespace project.Models.Services
         public void InsertBudget(Budget budget)
         {
             string sql = @"INSERT INTO Budget  
-                           (accountbookid, Title, Amount, Currency, StartDate, EndDate, Description) 
-                           VALUES (@accountbookid, @Title, @Amount, @Currency, @StartDate, @EndDate, @Description)";
+                           (accountbookid, BudgetName, Amount, Currency, StartDate, EndDate, Description) 
+                           VALUES (@accountbookid, @BudgetName, @Amount, @Currency, @StartDate, @EndDate, @Description)";
 
             var parameters = new Dictionary<string, object>
             {
                 { "@accountbookid", budget.AccountBookID },
-                { "@Title", budget.AccountBookName ?? "預算未命名"},
+                { "@BudgetName", budget.BudgetName ?? "預算未命名"},
                 { "@Amount", budget.Amount },
                 { "@Currency", budget.Currency ?? "TWD"},
                 { "@StartDate", budget.StartDate},
@@ -357,7 +357,7 @@ namespace project.Models.Services
         /// <returns>Budget 物件，如果找不到則為 null</returns>
         public Budget GetBudgetById(int budgetId)
         {
-            string sql = @"SELECT BudgetID, accountbookid, Title, Amount, Currency, StartDate, EndDate, Description, CreatedAt 
+            string sql = @"SELECT BudgetID, accountbookid, BudgetName, Amount, Currency, StartDate, EndDate, Description, CreatedAt 
                    FROM Budget 
                    WHERE BudgetID = @BudgetID"; // 假設你的 Budget 資料表有這些欄位
 
@@ -375,7 +375,7 @@ namespace project.Models.Services
                 {
                     BudgetID = Convert.ToInt32(row["BudgetID"]),
                     AccountBookID = Convert.ToInt32(row["accountbookid"]), // 假設 accountbookid 在 Budget 表中對應 AccountBookID
-                    AccountBookName = row["Title"].ToString(),      // 假設 Title 在 Budget 表中對應 AccountBookName
+                    BudgetName = row["BudgetName"].ToString(),      // 假設 BudgetName 在 Budget 表中對應 AccountBookName
                     Amount = Convert.ToInt32(row["Amount"]),
                     Currency = row.Table.Columns.Contains("Currency") ? row["Currency"].ToString() : null,
                     Description = row.Table.Columns.Contains("Description") ? row["Description"].ToString() : null,
@@ -391,7 +391,33 @@ namespace project.Models.Services
             }
             return null; // 找不到預算
         }
+        /// <summary>
+        /// 編輯預算紀錄
+        /// </summary>
+        /// <param name="data"></param>
+        public void UpdateBudget(Budget arg)
+        {
+            string sql = @"UPDATE BUDGET SET 
+                                BudgetName = @BudgetName,
+                                AMOUNT = @AMOUNT,
+                                CURRENCY = @CURRENCY,
+                                STARTDATE = @STARTDATE,
+                                ENDDATE = @ENDDATE,
+                                DESCRIPTION = @DESCRIPTION
+                           WHERE BUDGETID = @BUDGETID AND ACCOUNTBOOKID = @ACCOUNTBOOKID";
 
+            var parameters = new Dictionary<string, object>
+            {
+                { "@BudgetName", arg.BudgetName },
+                { "@AMOUNT", arg.Amount },
+                { "@CURRENCY", arg.Currency },
+                { "@STARTDATE", arg.StartDate },
+                { "@ENDDATE", arg.EndDate },
+                { "@DESCRIPTION", arg.Description },
+            };
+
+            _dbHelper.ExecuteNonQuery(sql, parameters);
+        }
 
 
     }
