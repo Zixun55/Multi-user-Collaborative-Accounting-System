@@ -1,34 +1,25 @@
-﻿@model project.Models.BudgetList
+﻿@model project.Models.Budget
 
 @{
-    ViewData["Title"] = "刪除預算";
+    ViewBag.Title = "刪除預算";
 }
 
-<h2>確認刪除</h2>
-
+<h2>刪除預算確認</h2>
 <div>
-    <h4>您確定要刪除這個預算嗎？</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>類別:</dt>
-        <dd>@Model.Description</dd>
-
-        <dt>金額:</dt>
-        <dd>@Model.Amount</dd>
-
-        <dt>週期 (月):</dt>
-        <dd>@Model.AccountBookID</dd>
+    <h4>你確定要刪除這筆預算嗎？</h4>
+    <dl class="row">
+        <dt class="col-sm-2">預算名稱</dt>
+        <dd class="col-sm-10">@Model.BudgetName</dd>
+        <dt class="col-sm-2">金額</dt>
+        <dd class="col-sm-10">@Model.Amount</dd>
+        <dt class="col-sm-2">期間</dt>
+        <dd class="col-sm-10">@Model.StartDate.ToString("yyyy-MM-dd") ~ @Model.EndDate.ToString("yyyy-MM-dd")</dd>
     </dl>
-
-    @using (Html.BeginForm("DeleteBudget", "Budget", FormMethod.Post))
-    {
+    <form asp-action="DeleteConfirmed" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" name="budgetID" value="@Model.BudgetID" />
         <input type="hidden" name="accountBookID" value="@Model.AccountBookID" />
-
-        <div class="form-actions no-color">
-            <input type="submit" value="刪除" class="btn btn-danger" />
-            @Html.ActionLink("返回列表", "Index", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-default" })
-        </div>
-    }
+        <button type="submit" class="btn btn-danger">確定刪除</button>
+        @Html.ActionLink("取消", "Index", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-secondary" })
+    </form>
 </div>

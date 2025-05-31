@@ -276,7 +276,7 @@ namespace project.Models.Services
                 {
                     BudgetID = Convert.ToInt32(row["BudgetID"]),
                     AccountBookID = row.Table.Columns.Contains("accountbookid") ? Convert.ToInt32(row["accountbookid"]) : 0,
-                    AccountBookName = row.Table.Columns.Contains("BudgetName") ? row["BudgetName"].ToString() : null,
+                    BudgetName = row.Table.Columns.Contains("BudgetName") ? row["BudgetName"].ToString() : null,
                     Amount = Convert.ToInt32(row["Amount"]),
                     Currency = row.Table.Columns.Contains("Currency") ? row["Currency"].ToString() : null,
                     StartDate = row.Table.Columns.Contains("StartDate") && !row.IsNull("StartDate") // 使用 row.IsNull() 更簡潔
@@ -446,6 +446,16 @@ namespace project.Models.Services
             }
 
             return 0m;
+        }
+        public void DeleteBudget(int budgetId, int accountBookId)
+        {
+            string sql = @"DELETE FROM Budget WHERE BudgetID = @BudgetID AND accountbookid = @accountBookId";
+            var parameters = new Dictionary<string, object>
+    {
+        { "@BudgetID", budgetId },
+        { "@accountBookId", accountBookId }
+    };
+            _dbHelper.ExecuteNonQuery(sql, parameters);
         }
 
 

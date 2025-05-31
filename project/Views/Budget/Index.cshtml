@@ -4,7 +4,7 @@
     ViewBag.Title = "預算管理";
 }
 
-<h2>@Model.AccountBookName 的預算管理</h2>
+<h2>@Model.BudgetName 的預算管理</h2>
 
 <p>
     @Html.ActionLink("創建新預算", "Create", new { accountBookID = Model.AccountBookID }, new { @class = "btn btn-primary" })
@@ -14,6 +14,7 @@
 <table class="table">
     <thead>
         <tr>
+            <th>預算名稱</th>
             <th>金額</th>
             <th>開始日期</th>
             <th>結束日期</th>
@@ -24,6 +25,7 @@
         @foreach (var item in Model.Budgets)
         {
             <tr>
+                <td>@item.BudgetName</td>
                 <td>@item.Amount</td>
                 <td>@item.StartDate</td>
                 <td>@item.EndDate</td>

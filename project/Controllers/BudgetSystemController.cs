@@ -24,18 +24,12 @@ namespace project.Controllers
             var accountBook = _service.SearchAccountBook(accountBookID);
             string accountBookName = accountBook?.AccountBookName ?? "未命名帳簿";
 
-            // 3. (可選) 如果 Budget model 需要 AccountBookName，可以在這裡賦值
-            foreach (var budget in budgets)
-            {
-                budget.AccountBookName = accountBookName;
-            }
-
-            // 4. 建立視圖模型
+            // 3. 建立視圖模型
             var viewModel = new BudgetViewModel
             {
                 Budgets = budgets, // budgets 現在是從 Budget 資料表來的
                 AccountBookID = accountBookID,
-                AccountBookName = accountBookName
+                BudgetName = accountBookName
             };
 
             ViewBag.AccountBookId = accountBookID; // 方便 View 中使用
@@ -165,10 +159,10 @@ namespace project.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreateBudget(Budget budget)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 _service.InsertBudget(budget); // 這才會寫入 Budget table
-                return RedirectToAction("Index", "Budget", new { id = budget.AccountBookID });
+                return RedirectToAction("Index", "Budget", new { accountBookId = budget.AccountBookID });
             }
             return View("Create", budget);
         }
@@ -204,43 +198,22 @@ namespace project.Controllers
         // 顯示刪除預算確認頁面
         public ActionResult Delete(int budgetID, int accountBookID)
         {
-            // 取得交易資料
-            var transaction = _service.GetTransactionData(new TransactionData
-            {
-                TransactionId = budgetID,
-                AccountBookId = accountBookID
-            });
+            var budget = _service.GetBudgetById(budgetID);
+            if (budget == null) return NotFound();
 
-            if (transaction == null)
-            {
-                return NotFound();
-            }
-
-            // 取得帳本資訊
-            var arg2 = new AccountBookList { AccountBookId = accountBookID };
-            var accountBookList = _service.GetAccountBookList(arg2);
-
-            // 建立完整的預算模型
-            var budget = new BudgetList
-            {
-                BudgetID = transaction.TransactionId,
-                Amount = transaction.Amount,
-                AccountBookID = accountBookID
-            };
-
-            // 傳遞單一預算對象，而非集合
-            return View("BudgetDelete", budget);
+            return View("Delete", budget);
         }
 
 
-        // 處理刪除預算請求
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteBudget(int budgetID, int accountBookID)
+        public ActionResult DeleteConfirmed(int budgetID, int accountBookID)
         {
-            _service.DeleteTransactionData(budgetID, accountBookID);
+            _service.DeleteBudget(budgetID, accountBookID);
             return RedirectToAction("Index", new { accountBookID });
         }
+
 
         // 輔助方法：獲取類別列表
         private List<SelectListItem> GetCategoryList()

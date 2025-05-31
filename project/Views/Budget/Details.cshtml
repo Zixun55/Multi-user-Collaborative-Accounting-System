@@ -1,47 +1,18 @@
-﻿@* @model List<project.Models.TransactionData> *@
-
-@* @{ *@
-@* 	ViewBag.Title = "預算相關交易紀錄"; *@
-@* } *@
-
-@* <h2>預算相關交易紀錄（僅顯示納入預算計算者）</h2> *@
-
-@* <p> *@
-@* 	@Html.ActionLink("顯示預算圖表", "ShowReport", "Budget", new { budgetID = ViewBag.budgetID, accountBookID = ViewBag.accountBookID }, new { @class = "btn btn-primary" }) *@
-@* 	@Html.ActionLink("返回預算列表", "Index", "Budget", new { accountBookID = ViewBag.accountBookID }, new { @class = "btn btn-primary" }) *@
-@* </p> *@
-@* <table class="table table-bordered table-striped"> *@
-@* 	<thead> *@
-@* 		<tr> *@
-@* 			<th>交易編號</th> *@
-@* 			<th>日期</th> *@
-@* 			<th>類別</th> *@
-@* 			<th>描述</th> *@
-@* 			<th>金額</th> *@
-@* 			<th>納入預算</th> *@
-@* 		</tr> *@
-@* 	</thead> *@
-@* 	<tbody> *@
-@* 		@foreach (var item in Model) *@
-@* 		{ *@
-@* 			<tr> *@
-@* 				<td>@item.TransactionId</td> *@
-@* 				<td>@item.Date.ToString("yyyy-MM-dd")</td> *@
-@* 				<td>@item.Category</td> *@
-@* 				<td>@item.Description</td> *@
-@* 				<td>@($"{item.Currency} {item.Amount:N2}")</td> *@
-@* 				<td>@(item.IncludeInBudget ? "是" : "否")</td> *@
-@* 			</tr> *@
-@* 		} *@
-@* 	</tbody> *@
-@* </table> *@
-@model project.Models.BudgetDetailsViewModel
+﻿@model project.Models.BudgetDetailsViewModel
 @{
     ViewData["Title"] = "預算詳情與交易紀錄";
     var culture = System.Globalization.CultureInfo.InvariantCulture;
 }
 
 <h2>預算詳情與交易紀錄</h2>
+
+@Html.ActionLink(
+                "返回預算列表",
+                "Index",
+                "Budget",
+                new { accountBookID = Model.AccountBookID },
+                new { @class = "btn btn-secondary" }
+            )
 
 <!-- 預算摘要與圖表區塊 -->
 <div class="row mt-4">
