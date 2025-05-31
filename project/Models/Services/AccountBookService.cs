@@ -317,23 +317,49 @@ namespace project.Models.Services
 
             _dbHelper.ExecuteNonQuery(sql, parameters);
         }
-
-        public List<TransactionData> GetTransactionsIncludedInBudget(int accountBookId)
+        /// <summary>
+        /// 取得指定帳本中納入預算的交易，並根據分類與時間區間過濾
+        /// </summary>
+        public List<TransactionData> GetTransactionsIncludedInBudget(
+            int accountBookId,
+            string category = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null)
         {
-            string sql = @"SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, 
-                          DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY, 
-                          INCLUDE_IN_BUDGET
-                   FROM TRANSACTION 
-                   WHERE ACCOUNT_BOOK_ID = @AccountBookId 
-                     AND INCLUDE_IN_BUDGET = TRUE"; 
+            string sql = @"
+        SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, 
+               DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY, INCLUDE_IN_BUDGET
+        FROM TRANSACTION
+        WHERE ACCOUNT_BOOK_ID = @AccountBookId
+          AND INCLUDE_IN_BUDGET = TRUE";
 
             var parameters = new Dictionary<string, object>
     {
         { "@AccountBookId", accountBookId }
     };
 
+            // 動態加入分類過濾
+            if (!string.IsNullOrEmpty(category) && category != "全部")
+            {
+                sql += " AND CATEGORY = @Category";
+                parameters.Add("@Category", category);
+            }
+
+            // 動態加入時間區間過濾
+            if (startDate.HasValue)
+            {
+                sql += " AND DATE >= @StartDate";
+                parameters.Add("@StartDate", startDate.Value);
+            }
+            if (endDate.HasValue)
+            {
+                sql += " AND DATE <= @EndDate";
+                parameters.Add("@EndDate", endDate.Value);
+            }
+
             DataTable dt = _dbHelper.ExecuteQuery(sql, parameters);
             List<TransactionData> result = new();
+
             foreach (DataRow row in dt.Rows)
             {
                 result.Add(new TransactionData
@@ -348,8 +374,43 @@ namespace project.Models.Services
                     IncludeInBudget = Convert.ToBoolean(row["INCLUDE_IN_BUDGET"])
                 });
             }
+
             return result;
         }
+
+
+        //    public List<TransactionData> GetTransactionsIncludedInBudget(int accountBookId)
+        //    {
+        //        string sql = @"SELECT TRANSACTION_ID, ACCOUNT_BOOK_ID, DATE, AMOUNT, 
+        //                      DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY, 
+        //                      INCLUDE_IN_BUDGET
+        //               FROM TRANSACTION 
+        //               WHERE ACCOUNT_BOOK_ID = @AccountBookId 
+        //                 AND INCLUDE_IN_BUDGET = TRUE"; 
+
+        //        var parameters = new Dictionary<string, object>
+        //{
+        //    { "@AccountBookId", accountBookId }
+        //};
+
+        //        DataTable dt = _dbHelper.ExecuteQuery(sql, parameters);
+        //        List<TransactionData> result = new();
+        //        foreach (DataRow row in dt.Rows)
+        //        {
+        //            result.Add(new TransactionData
+        //            {
+        //                TransactionId = Convert.ToInt32(row["TRANSACTION_ID"]),
+        //                AccountBookId = Convert.ToInt32(row["ACCOUNT_BOOK_ID"]),
+        //                Date = Convert.ToDateTime(row["DATE"]),
+        //                Amount = Convert.ToInt32(row["AMOUNT"]),
+        //                Description = row["DESCRIPTION"].ToString(),
+        //                Currency = row["TRANSACTION_CURRENCY"].ToString(),
+        //                Category = row["CATEGORY"].ToString(),
+        //                IncludeInBudget = Convert.ToBoolean(row["INCLUDE_IN_BUDGET"])
+        //            });
+        //        }
+        //        return result;
+        //    }
         /// <summary>
         /// 根據 BudgetID 取得單筆預算資料
         /// </summary>

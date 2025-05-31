@@ -64,19 +64,35 @@ namespace project.Controllers
 
 
         // 顯示單個預算詳情
-        public ActionResult Details(int budgetID, int accountBookID)
+        public ActionResult Details(
+        int budgetID,
+        int accountBookID,
+        string category = null,
+        string start = null,
+        string end = null)
         {
             var budget = _service.GetBudgetById(budgetID);
             if (budget == null) return NotFound();
 
+            // 轉換日期參數
+            DateTime? startDate = string.IsNullOrEmpty(start) ? (DateTime?)null : DateTime.Parse(start);
+            DateTime? endDate = string.IsNullOrEmpty(end) ? (DateTime?)null : DateTime.Parse(end);
+
+            // 呼叫 Service 層過濾方法
+            var includedTransactions = _service.GetTransactionsIncludedInBudget(
+                accountBookID,
+                category,
+                startDate,
+                endDate
+            );
+
+            // 計算預算摘要
             decimal totalBudget = budget.Amount;
-            decimal totalExpenses = _service.GetIncludedExpenseSum(accountBookID);
+            decimal totalExpenses = includedTransactions.Sum(t => t.Amount);
             decimal remainingBudget = Math.Max(0, totalBudget - totalExpenses);
             decimal overBudget = totalExpenses > totalBudget ? totalExpenses - totalBudget : 0;
             decimal usagePercentage = totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
             string budgetStatus = GetBudgetStatus(totalBudget, totalExpenses, usagePercentage);
-
-            var includedTransactions = _service.GetTransactionsIncludedInBudget(accountBookID);
 
             var viewModel = new BudgetDetailsViewModel
             {
@@ -88,11 +104,84 @@ namespace project.Controllers
                 OverBudget = overBudget,
                 UsagePercentage = usagePercentage,
                 BudgetStatus = budgetStatus,
+                StartDate = budget.StartDate,  // 新增：預算開始日期
+                EndDate = budget.EndDate,      // 新增：預算結束日期
                 IncludedTransactions = includedTransactions
             };
 
             return View(viewModel);
         }
+
+        [HttpPost]
+        public JsonResult GetFilteredTransactions(int budgetID, int accountBookID, string category = null, string start = null, string end = null)
+        {
+            var budget = _service.GetBudgetById(budgetID);
+            if (budget == null) return Json(new { success = false });
+
+            DateTime? startDate = string.IsNullOrEmpty(start) ? (DateTime?)null : DateTime.Parse(start);
+            DateTime? endDate = string.IsNullOrEmpty(end) ? (DateTime?)null : DateTime.Parse(end);
+
+            var includedTransactions = _service.GetTransactionsIncludedInBudget(accountBookID, category, startDate, endDate);
+
+            decimal totalBudget = budget.Amount;
+            decimal totalExpenses = includedTransactions.Sum(t => t.Amount);
+            decimal remainingBudget = Math.Max(0, totalBudget - totalExpenses);
+            decimal overBudget = totalExpenses > totalBudget ? totalExpenses - totalBudget : 0;
+            decimal usagePercentage = totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
+            string budgetStatus = GetBudgetStatus(totalBudget, totalExpenses, usagePercentage);
+
+            return Json(new
+            {
+                success = true,
+                totalBudget = totalBudget,
+                totalSpent = totalExpenses,
+                remainingBudget = remainingBudget,
+                overBudget = overBudget,
+                usagePercentage = usagePercentage,
+                budgetStatus = budgetStatus,
+                transactions = includedTransactions.Select(t => new
+                {
+                    transactionId = t.TransactionId,
+                    date = t.Date.ToString("yyyy/MM/dd"),
+                    category = t.Category,
+                    description = t.Description,
+                    amount = t.Amount,
+                    currency = t.Currency,
+                    includeInBudget = t.IncludeInBudget
+                }).ToList()
+            });
+        }
+
+
+        //public ActionResult Details(int budgetID, int accountBookID)
+        //{
+        //    var budget = _service.GetBudgetById(budgetID);
+        //    if (budget == null) return NotFound();
+
+        //    decimal totalBudget = budget.Amount;
+        //    decimal totalExpenses = _service.GetIncludedExpenseSum(accountBookID);
+        //    decimal remainingBudget = Math.Max(0, totalBudget - totalExpenses);
+        //    decimal overBudget = totalExpenses > totalBudget ? totalExpenses - totalBudget : 0;
+        //    decimal usagePercentage = totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
+        //    string budgetStatus = GetBudgetStatus(totalBudget, totalExpenses, usagePercentage);
+
+        //    var includedTransactions = _service.GetTransactionsIncludedInBudget(accountBookID);
+
+        //    var viewModel = new BudgetDetailsViewModel
+        //    {
+        //        BudgetID = budgetID,
+        //        AccountBookID = accountBookID,
+        //        TotalBudget = totalBudget,
+        //        TotalSpent = totalExpenses,
+        //        RemainingBudget = remainingBudget,
+        //        OverBudget = overBudget,
+        //        UsagePercentage = usagePercentage,
+        //        BudgetStatus = budgetStatus,
+        //        IncludedTransactions = includedTransactions
+        //    };
+
+        //    return View(viewModel);
+        //}
 
         //public ActionResult Details(int budgetID, int accountBookID)
         //{
