@@ -108,7 +108,8 @@ namespace project.Models.Services
                     Description = row["DESCRIPTION"].ToString(),
                     Category = row["CATEGORY"].ToString(),
                     Amount = Convert.ToInt32(row["AMOUNT"]),
-                    Currency = row["TRANSACTION_CURRENCY"].ToString()
+                    Currency = row["TRANSACTION_CURRENCY"].ToString(),
+                    IncludeInBudget = Convert.ToBoolean(row["INCLUDE_IN_BUDGET"])
                 };
             }
 
@@ -122,13 +123,14 @@ namespace project.Models.Services
         public void UpdateTransactionData(TransactionData arg)
         {
             string sql = @"UPDATE TRANSACTION SET 
-                                DATE = @DATE,
-                                AMOUNT = @AMOUNT,
-                                DESCRIPTION = @DESCRIPTION,
-                                TRANSACTION_CURRENCY = @CURRENCY,
-                                CATEGORY = @CATEGORY,
-                                INCLUDE_IN_BUDGET = @INCLUDE_IN_BUDGET
-                           WHERE TRANSACTION_ID = @TRANSACTION_ID AND ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+                    DATE = @DATE,
+                    AMOUNT = @AMOUNT,
+                    DESCRIPTION = @DESCRIPTION,
+                    TRANSACTION_CURRENCY = @CURRENCY,
+                    CATEGORY = @CATEGORY,
+                    INCLUDE_IN_BUDGET = @INCLUDE_IN_BUDGET
+               WHERE TRANSACTION_ID = @TRANSACTION_ID AND ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
+
 
             var parameters = new Dictionary<string, object>
             {
@@ -137,6 +139,7 @@ namespace project.Models.Services
                 { "@DESCRIPTION", arg.Description },
                 { "@CURRENCY", arg.Currency },
                 { "@CATEGORY", arg.Category },
+                { "@INCLUDE_IN_BUDGET", arg.IncludeInBudget },
                 { "@TRANSACTION_ID", arg.TransactionId },
                 { "@ACCOUNT_BOOK_ID", arg.AccountBookId }
             };
@@ -148,11 +151,15 @@ namespace project.Models.Services
         /// 新增交易紀錄
         /// </summary>
         /// <param name="data"></param>
+        /// <summary>
+        /// 新增交易紀錄
+        /// </summary>
+        /// <param name="data"></param>
         public void InsertTransactionData(TransactionData arg)
         {
             string sql = @"INSERT INTO TRANSACTION 
-                           (ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY, INCLUDE_IN_BUDGET) 
-                           VALUES (@ACCOUNT_BOOK_ID, @DATE, @AMOUNT, @DESCRIPTION, @CURRENCY, @CATEGORY, @INCLUDE_IN_BUDGET)";
+                   (ACCOUNT_BOOK_ID, DATE, AMOUNT, DESCRIPTION, TRANSACTION_CURRENCY, CATEGORY, INCLUDE_IN_BUDGET) 
+                   VALUES (@ACCOUNT_BOOK_ID, @DATE, @AMOUNT, @DESCRIPTION, @CURRENCY, @CATEGORY, @INCLUDE_IN_BUDGET)";
 
             var parameters = new Dictionary<string, object>
             {
@@ -161,11 +168,13 @@ namespace project.Models.Services
                 { "@AMOUNT", arg.Amount },
                 { "@DESCRIPTION", arg.Description },
                 { "@CURRENCY", arg.Currency },
-                { "@CATEGORY", arg.Category }
+                { "@CATEGORY", arg.Category },
+                { "@INCLUDE_IN_BUDGET", arg.IncludeInBudget }
             };
 
             _dbHelper.ExecuteNonQuery(sql, parameters);
         }
+
 
         /// <summary>
         /// 刪除交易紀錄

@@ -33,6 +33,10 @@ namespace project.Models
 
         [DisplayName("帳本編號")]
         public int AccountBookId { get; set; }
+
+        [DisplayName("是否加入預算")]
         public bool IncludeInBudget { get; set; }
+
+
     }
 }
