@@ -147,8 +147,9 @@ namespace TestAccountingSystem
             dt.Columns.Add("CATEGORY", typeof(string));
             dt.Columns.Add("AMOUNT", typeof(int));
             dt.Columns.Add("TRANSACTION_CURRENCY", typeof(string));
+            dt.Columns.Add("INCLUDE_IN_BUDGET", typeof(bool));
 
-            dt.Rows.Add(1, 1, new DateTime(2024, 2, 13), "午餐", "餐飲", 100, "TWD");
+            dt.Rows.Add(1, 1, new DateTime(2024, 2, 13), "午餐", "餐飲", 100, "TWD", true);
 
             mockDbHelper
                 .Setup(db => db.ExecuteQuery(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
@@ -166,6 +167,7 @@ namespace TestAccountingSystem
             Assert.AreEqual("餐飲", result.Category);
             Assert.AreEqual(100, result.Amount);
             Assert.AreEqual("TWD", result.Currency);
+            Assert.AreEqual(true, result.IncludeInBudget);
         }
 
         /// <summary>
@@ -304,14 +306,16 @@ namespace TestAccountingSystem
             service.DeleteAccountBookData(accountBookId);
 
             mockDbHelper.Verify(m => m.ExecuteTransaction(
-                It.Is<List<(string, Dictionary<string, object>)>>(list =>
-                    list.Count == 2 &&
-                    list[0].Item1.Contains("DELETE FROM TRANSACTION") &&
-                    list[1].Item1.Contains("DELETE FROM ACCOUNT_BOOK") &&
-                    list[0].Item2 == list[1].Item2 &&
-                    list[0].Item2["@ACCOUNT_BOOK_ID"].Equals(accountBookId)
-                )
-            ), Times.Once);
+                    It.Is<List<(string, Dictionary<string, object>)>>(list =>
+                        list.Count == 3 &&
+                        list[0].Item1.Contains("DELETE FROM BUDGET") &&      
+                        list[1].Item1.Contains("DELETE FROM TRANSACTION") &&
+                        list[2].Item1.Contains("DELETE FROM ACCOUNT_BOOK") &&
+                        list[0].Item2["@ACCOUNT_BOOK_ID"].Equals(accountBookId) &&
+                        list[1].Item2["@ACCOUNT_BOOK_ID"].Equals(accountBookId) &&
+                        list[2].Item2["@ACCOUNT_BOOK_ID"].Equals(accountBookId)
+                    )
+                ), Times.Once);
         }
 
         /// <summary>

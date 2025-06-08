@@ -220,6 +220,7 @@ namespace project.Models.Services
         /// <param name="accountBookId"></param>
         public void DeleteAccountBookData(int accountBookId)
         {
+            string deleteBudgetSql = @"DELETE FROM BUDGET WHERE ACCOUNTBOOKID = @ACCOUNT_BOOK_ID";
             string deleteTransactionsSql = @"DELETE FROM TRANSACTION WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
             string deleteAccountBookSql = @"DELETE FROM ACCOUNT_BOOK WHERE ACCOUNT_BOOK_ID = @ACCOUNT_BOOK_ID";
 
@@ -230,6 +231,7 @@ namespace project.Models.Services
 
             _dbHelper.ExecuteTransaction(new List<(string, Dictionary<string, object>)>
             {
+                (deleteBudgetSql, parameters),
                 (deleteTransactionsSql, parameters),
                 (deleteAccountBookSql, parameters)
             });
