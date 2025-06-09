@@ -8,11 +8,9 @@
     <!-- 操作按鈕區 -->
     <div class="d-flex justify-content-between mb-4">
         <h2 class="mb-0">預算詳情與交易紀錄</h2>
-        <div>
             @Html.ActionLink("返回預算列表", "Index", "Budget",
                      new { accountBookID = Model.AccountBookID },
-                     new { @class = "btn btn-outline-secondary" })
-        </div>
+                     new { @class = "btn btn-secondary" })
     </div>
 
     <!-- 預算摘要卡片 -->
