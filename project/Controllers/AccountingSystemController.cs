@@ -44,6 +44,8 @@ namespace project.Controllers
             var searchArg = new TransactionList { AccountBookId = id };
             List<TransactionList> accountBookDataResult = _service.GetTransactionList(searchArg);
             ViewBag.AccountBookId = id;
+            var book = _service.GetAccountBookData(new AccountBookList { AccountBookId = id });
+            ViewBag.BaseCurrency = book.BaseCurrency ?? "TWD"; 
 
             return View(accountBookDataResult);
         }
