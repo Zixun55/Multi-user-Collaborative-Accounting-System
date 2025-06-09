@@ -102,68 +102,96 @@
 </table>
 
 <script>
-    async function convertCurrency(selectedCurrency) {
+            async function convertCurrency(selectedCurrency) {
         const amountCells = document.querySelectorAll(".amount-cell");
-
-        if (selectedCurrency === "TWD") {
-            amountCells.forEach(cell => {
-                const amount = parseFloat(cell.dataset.amount);
-                if (!isNaN(amount)) {
-                    cell.textContent = `TWD ${amount.toLocaleString(undefined, {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                    })}`;
-                }
-            });
-            return;
-        }
 
         try {
             const response = await fetch('/AccountingSystem/GetExchangeRates');
             const data = await response.json();
 
-            const USD_TO_TWD_KEY = "USDTWD";
-            const USD_TO_TARGET_KEY = "USD" + selectedCurrency;
+            const usdToTwd = data["USDTWD"]?.Exrate;
+            const usdToEur = data["USDEUR"]?.Exrate;
+            const usdToJpy = data["USDJPY"]?.Exrate;
 
-            const usdToTwd = data[USD_TO_TWD_KEY]?.Exrate;
-            const usdToTarget = data[USD_TO_TARGET_KEY]?.Exrate;
-
-            if (!usdToTwd || !usdToTarget) {
-                console.error(`缺少匯率資料：${USD_TO_TWD_KEY} 或 ${USD_TO_TARGET_KEY}`);
+            if (!usdToTwd || !usdToEur || !usdToJpy) {
                 alert("無法取得匯率資料，請稍後再試！");
                 return;
             }
 
-            const twdToTarget = usdToTarget / usdToTwd;
-
             amountCells.forEach(cell => {
-                const twdAmount = parseFloat(cell.dataset.amount);
-                if (!isNaN(twdAmount)) {
-                    const converted = twdAmount * twdToTarget;
-                    cell.textContent = `${selectedCurrency} ${converted.toLocaleString(undefined, {
+                const originalAmount = parseFloat(cell.dataset.amount);
+                const originalCurrency = cell.dataset.currency;
+
+                if (isNaN(originalAmount)) return;
+
+                let amountInTWD;
+                switch (originalCurrency) {
+                    case "TWD":
+                        amountInTWD = originalAmount;
+                        break;
+                    case "USD":
+                        amountInTWD = originalAmount * usdToTwd;
+                        break;
+                    case "EUR":
+                        amountInTWD = originalAmount * (usdToTwd / usdToEur);
+                        break;
+                    case "JPY":
+                        amountInTWD = originalAmount * (usdToTwd / usdToJpy);
+                        break;
+                    default:
+                        amountInTWD = originalAmount;
+                        break;
+                }
+
+                if (selectedCurrency === "TWD") {
+                    cell.textContent = `TWD ${amountInTWD.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     })}`;
+                    return;
                 }
+
+                let convertedAmount;
+                switch (selectedCurrency) {
+                    case "USD":
+                        convertedAmount = amountInTWD / usdToTwd;
+                        break;
+                    case "EUR":
+                        convertedAmount = amountInTWD / (usdToTwd / usdToEur);
+                        break;
+                    case "JPY":
+                        convertedAmount = amountInTWD / (usdToTwd / usdToJpy);
+                        break;
+                    default:
+                        convertedAmount = amountInTWD;
+                        break;
+                }
+
+                cell.textContent = `${selectedCurrency} ${convertedAmount.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
             });
 
         } catch (error) {
             console.error("匯率查詢失敗：", error);
-            alert("匯率查詢失敗，請檢查網路連線或稍後再試！");
+            alert("匯率查詢失敗，請稍後再試！");
         }
     }
 
-    // 幣別變更時
+
+
     document.getElementById("currencySelector").addEventListener("change", function () {
         convertCurrency(this.value);
     });
 
-    // 初始進入頁面自動套用幣別
     document.addEventListener("DOMContentLoaded", function () {
         const initialCurrency = document.getElementById("currencySelector").value;
         convertCurrency(initialCurrency);
     });
 </script>
+
+
 
 
 

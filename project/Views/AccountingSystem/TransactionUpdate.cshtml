@@ -60,12 +60,14 @@
         <div class="form-group">
             @Html.LabelFor(model => model.Currency, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                <select id="Currency" name="Currency" class="form-select" style="width: 200px;">
-                    <option value="TWD">新台幣 (TWD)</option>
-                    <option value="USD">美元 (USD)</option>
-                    <option value="EUR">歐元 (EUR)</option>
-                    <option value="JPY">日圓 (JPY)</option>
-                </select>
+                @Html.DropDownListFor(model => model.Currency,
+                    new SelectList(new[] {
+                        new { Value = "TWD", Text = "新台幣 (TWD)" },
+                        new { Value = "USD", Text = "美元 (USD)" },
+                        new { Value = "EUR", Text = "歐元 (EUR)" },
+                        new { Value = "JPY", Text = "日圓 (JPY)" }
+                        }, "Value", "Text", Model.Currency),
+                        new { @class = "form-select", style = "width: 200px;" })
                 @Html.ValidationMessageFor(model => model.Currency, "", new { @class = "text-danger" })
             </div>
         </div>
