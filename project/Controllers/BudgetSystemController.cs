@@ -17,22 +17,19 @@ namespace project.Controllers
         // 顯示指定賬簿的所有預算
         public ActionResult Index(int accountBookID)
         {
-            // 1. 使用新的服務方法獲取特定帳本的預算列表
             List<BudgetList> budgets = _service.GetBudgetsForAccountBook(accountBookID);
 
-            // 2. 獲取帳本名稱
             var accountBook = _service.SearchAccountBook(accountBookID);
             string accountBookName = accountBook?.AccountBookName ?? "未命名帳簿";
 
-            // 3. 建立視圖模型
             var viewModel = new BudgetViewModel
             {
-                Budgets = budgets, // budgets 現在是從 Budget 資料表來的
+                Budgets = budgets,
                 AccountBookID = accountBookID,
                 BudgetName = accountBookName
             };
 
-            ViewBag.AccountBookId = accountBookID; // 方便 View 中使用
+            ViewBag.AccountBookId = accountBookID;
             return View(viewModel);
         }
 

@@ -448,6 +448,7 @@ namespace project.Models.Services
 
             var parameters = new Dictionary<string, object>
             {
+                { "@BUDGETID", arg.BudgetID },
                 { "@BudgetName", arg.BudgetName },
                 { "@AMOUNT", arg.Amount },
                 { "@CURRENCY", arg.Currency },
