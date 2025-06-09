@@ -49,13 +49,19 @@
             </div>
         </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.BaseCurrency, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.TextBoxFor(model => model.BaseCurrency, new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.BaseCurrency, "", new { @class = "text-danger" })
-            </div>
+        @Html.LabelFor(model => model.BaseCurrency, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DropDownListFor(model => model.BaseCurrency, new SelectList(new[]
+                     {
+                        new { Value = "TWD", Text = "新台幣 (TWD)" },
+                        new { Value = "USD", Text = "美元 (USD)" },
+                        new { Value = "EUR", Text = "歐元 (EUR)" },
+                        new { Value = "JPY", Text = "日圓 (JPY)" }
+                        }, "Value", "Text", Model.BaseCurrency),
+                     htmlAttributes: new { @class = "form-select", style = "width: 200px;" })
+            @Html.ValidationMessageFor(model => model.BaseCurrency, "", new { @class = "text-danger" })
         </div>
+
         <br>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
