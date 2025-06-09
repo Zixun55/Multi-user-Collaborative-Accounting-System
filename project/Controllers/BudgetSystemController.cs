@@ -132,11 +132,6 @@ namespace project.Controllers
             model.AccountBookID = accountbookid;
             return View(model);
         }
-        //public ActionResult Create(int accountBookID)
-        //{
-        //    ViewBag.Categories = GetCategoryList();
-        //    return View(new BudgetList { AccountBookID = accountBookID });
-        //}
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -144,7 +139,7 @@ namespace project.Controllers
         {
             if (ModelState.IsValid)
             {
-                _service.InsertBudget(budget); // 這才會寫入 Budget table
+                _service.InsertBudget(budget);
                 return RedirectToAction("Index", "Budget", new { accountBookId = budget.AccountBookID });
             }
             return View("Create", budget);
@@ -152,12 +147,12 @@ namespace project.Controllers
 
         public ActionResult Edit(int budgetID, int accountBookID)
         {
-            var budget = _service.GetBudgetById(budgetID); // 這裡要回傳完整的 Budget 或 BudgetList
+            var budget = _service.GetBudgetById(budgetID);
             if (budget == null) return NotFound();
 
             ViewBag.Categories = GetCategoryList();
             ViewBag.AccountBookId = accountBookID;
-            return View(budget); // 這裡 budget 物件要有所有欄位
+            return View(budget);
         }
 
         // 處理更新預算請求
@@ -216,11 +211,9 @@ namespace project.Controllers
             var budget = _service.GetBudgetById(budgetID);
             if (budget == null) return NotFound();
 
-            // 確保 budget.Amount 不是 null
             decimal totalBudget = budget.Amount;
             decimal totalExpenses = _service.GetIncludedExpenseSum(accountBookID);
 
-            // 修正剩餘預算計算邏輯
             decimal remainingBudget = Math.Max(0, totalBudget - totalExpenses);
             decimal overBudget = totalExpenses > totalBudget ? totalExpenses - totalBudget : 0;
 
